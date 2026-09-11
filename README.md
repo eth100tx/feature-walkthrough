@@ -63,15 +63,20 @@ should do. That is all it needs.
 
 ## Try it first
 
-Open `example/expiring-quotes-walkthrough.html` in a browser. It is a complete
-walkthrough of a real feature — an alert system for an insurance underwriting
-platform — and it takes about a minute to play. `example/README.md` explains why
-it is built the way it is.
+Open `how-it-works.html` in a browser. It explains this skill, using this skill:
+a walkthrough of what actually happens when you invoke it, start to finish. It was
+built with the template in this repository.
+
+Then open `example/expiring-quotes-walkthrough.html`, a complete walkthrough of a
+real feature — an alert system for an insurance underwriting platform. It takes
+about a minute to play, and `example/README.md` explains why it is built the way
+it is.
 
 ## What is in here
 
 ```
 SKILL.md                              the skill Claude Code reads
+how-it-works.html                     this skill, explained using this skill
 template/walkthrough-template.html    the engine, with five slots to fill
 reference/reading-the-codebase.md     extracting theme, components and vocabulary
 reference/writing-the-tour.md         scripting a walkthrough people watch to the end

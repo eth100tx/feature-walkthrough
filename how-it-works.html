@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>feature-walkthrough — how it works</title>
+<style>
+:root {
+  --primary:      #2f5fa0;
+  --primary-10:   rgba(47,95,160,.10);
+  --primary-dark: #274f87;
+  --ink:          #0d1117;
+  --ink-2:        #495057;
+  --dimmed:       #868e96;
+  --line:         #dee2e6;
+  --line-2:       #ced4da;
+  --bg:           #f2f4f6;
+  --panel:        #ffffff;
+  --hover:        #f8f9fa;
+  --alert:        #e03131;
+  --ok:           #2f9e44;
+  --radius:       4px;
+
+  --term-bg:      #14171a;
+  --term-head:    #22262a;
+  --term-text:    #d7dde3;
+  --term-dim:     #6f7c87;
+  --term-green:   #5dd97f;
+  --term-blue:    #6fa8f0;
+  --term-amber:   #f0b849;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  height: 100%; overflow: hidden;
+}
+
+/* ─────────────────────── WORKSPACE ─────────────────────── */
+.shell { display: flex; flex-direction: column; height: 100vh; }
+
+.topbar { height: 46px; flex: none; background: var(--panel); border-bottom: 1px solid var(--line);
+          display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+.topbar .mark { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--primary);
+                letter-spacing: -.3px; }
+.topbar .sep { width: 1px; height: 18px; background: var(--line); }
+.topbar .crumb { font-size: 12px; color: var(--dimmed); }
+.topbar .spacer { flex: 1; }
+.topbar .tag { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+               color: var(--dimmed); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+
+.work { flex: 1; display: grid; grid-template-columns: 236px 1fr 430px; min-height: 0; }
+
+/* ─── Codebase pane ─── */
+.files { background: var(--panel); border-right: 1px solid var(--line); padding: 16px 0; overflow: auto; }
+.files h3 { font-size: 10px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase;
+            color: var(--dimmed); margin: 0 0 10px; padding: 0 16px; }
+.frow { display: flex; align-items: center; gap: 8px; padding: 5px 16px; font-family: var(--mono);
+        font-size: 11.5px; color: var(--ink-2); }
+.frow .ic { width: 13px; height: 13px; flex: none; opacity: .45; }
+.frow .tick { margin-left: auto; color: var(--ok); opacity: 0; transform: scale(.5);
+              transition: opacity .3s ease, transform .3s cubic-bezier(.2,1.4,.4,1); font-weight: 700; }
+.frow.read { color: var(--ink); background: rgba(47,158,68,.06); }
+.frow.read .ic { opacity: .8; }
+.frow.read .tick { opacity: 1; transform: none; }
+.frow.dir { color: var(--dimmed); font-weight: 600; }
+.frow.nested { padding-left: 30px; }
+
+/* ─── Terminal pane ─── */
+.termwrap { background: var(--term-bg); display: flex; flex-direction: column; min-height: 0; }
+.termhead { height: 32px; flex: none; background: var(--term-head); display: flex; align-items: center;
+            padding: 0 13px; gap: 7px; }
+.termhead .tl { width: 10px; height: 10px; border-radius: 50%; }
+.termhead .tl.r { background: #ff5f57; } .termhead .tl.y { background: #febc2e; }
+.termhead .tl.g { background: #28c840; }
+.termhead .tt { margin-left: 9px; font-family: var(--mono); font-size: 11px; color: var(--term-dim); }
+.term { flex: 1; overflow: hidden; padding: 16px 20px; font-family: var(--mono);
+        font-size: 12.2px; line-height: 1.72; color: var(--term-text); }
+.tline { white-space: pre-wrap; }
+.tline.dim   { color: var(--term-dim); }
+.tline.user  { color: var(--term-blue); }
+.tline.ok    { color: var(--term-green); }
+.tline.warn  { color: var(--term-amber); }
+.tline.bold  { font-weight: 700; }
+.tline.gap   { height: 9px; }
+.caret { display: inline-block; width: 7px; height: 14px; background: var(--term-green);
+         vertical-align: -2px; animation: blink 1.05s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ─── Output pane ─── */
+.outwrap { background: var(--panel); border-left: 1px solid var(--line); display: flex;
+           flex-direction: column; min-height: 0; }
+.outhead { height: 38px; flex: none; border-bottom: 1px solid var(--line); display: flex;
+           align-items: center; padding: 0 16px; gap: 9px; }
+.outhead .name { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+.outhead .size { margin-left: auto; font-size: 10.5px; color: var(--dimmed); }
+.outbody { flex: 1; position: relative; overflow: hidden; background: #e9ecef; }
+
+.empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+         justify-content: center; gap: 9px; color: var(--dimmed); font-size: 12px; padding: 30px;
+         text-align: center; transition: opacity .4s ease; }
+.empty svg { opacity: .28; }
+
+/* The miniature walkthrough rendered inside the output pane */
+.mini { position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; }
+.mini.on { opacity: 1; }
+.mini-chrome { position: absolute; inset: 0; background: var(--panel); display: flex; flex-direction: column; }
+.mini-nav { height: 34px; flex: none; background: var(--hover); border-bottom: 1px solid var(--line);
+            display: flex; align-items: center; padding: 0 12px; gap: 8px; }
+.mini-nav .b { font-size: 10.5px; font-weight: 800; color: var(--primary); letter-spacing: .9px; }
+.mini-nav .n { font-size: 10px; color: var(--dimmed); }
+.mini-body { flex: 1; padding: 13px; overflow: hidden; }
+.mini-h { font-size: 12.5px; font-weight: 700; margin: 0 0 9px; }
+.mtable { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+.mtable th { text-align: left; padding: 5px 7px; border-bottom: 1.5px solid var(--line);
+             font-size: 8.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--dimmed); }
+.mtable td { padding: 6px 7px; border-bottom: 1px solid var(--line); color: var(--ink-2); }
+.mtable tr.flag td { background: rgba(224,49,49,.055); }
+.mtable tr.flag td:first-child { box-shadow: inset 2px 0 0 var(--alert); }
+.mpill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 8.5px;
+         font-weight: 700; color: #fff; background: var(--dimmed); }
+.mpill.open { background: #fab005; } .mpill.rev { background: #569fb0; }
+
+/* the mini caption + its own little spotlight */
+.mini-cap { position: absolute; left: 50%; transform: translateX(-50%) translateY(-6px); top: 44px;
+            background: #1a1d1f; color: #fff; font-size: 9.5px; padding: 5px 11px; border-radius: 999px;
+            max-width: 88%; text-align: center; opacity: 0; transition: all .35s ease; z-index: 4;
+            box-shadow: 0 6px 18px rgba(16,24,40,.3); }
+.mini-cap.in { opacity: 1; transform: translateX(-50%) translateY(0); }
+.mini-spot { position: absolute; border-radius: 5px; pointer-events: none; z-index: 3;
+             box-shadow: 0 0 0 9999px rgba(10,13,16,.6); opacity: 0;
+             transition: opacity .35s ease, top .45s ease, left .45s ease, width .45s ease, height .45s ease; }
+.mini-spot.on { opacity: 1; }
+.mini-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 11px; z-index: 4;
+            background: #1a1d1f; border-radius: 999px; padding: 4px 9px; display: flex; gap: 3px;
+            align-items: center; opacity: 0; transition: opacity .35s ease; }
+.mini-bar.on { opacity: 1; }
+.mini-bar i { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.3); }
+.mini-bar i.on { background: #fff; }
+
+/* the mini intro card and review panel */
+.mini-over { position: absolute; inset: 0; z-index: 6; background: rgba(14,18,22,.72);
+             display: flex; align-items: center; justify-content: center; padding: 16px;
+             opacity: 0; pointer-events: none; transition: opacity .45s ease; }
+.mini-over.on { opacity: 1; }
+.mini-card { background: #fff; border-radius: 9px; padding: 16px 18px; width: 100%;
+             box-shadow: 0 18px 44px rgba(0,0,0,.35); }
+.mini-card .eye { font-size: 8px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+                  color: var(--dimmed); margin-bottom: 8px; }
+.mini-card h4 { margin: 0 0 6px; font-size: 13px; line-height: 1.25; }
+.mini-card p { margin: 0 0 11px; font-size: 10.5px; color: var(--ink-2); line-height: 1.5; }
+.mini-card .it { display: flex; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line);
+                 font-size: 10px; align-items: flex-start; }
+.mini-card .it b { display: block; font-size: 10px; }
+.mini-card .it span { color: var(--dimmed); font-size: 9.5px; }
+.mini-card .num { width: 15px; height: 15px; min-width: 15px; border-radius: 50%;
+                  background: var(--primary-10); color: var(--primary); font-size: 8.5px; font-weight: 700;
+                  display: flex; align-items: center; justify-content: center; }
+.mini-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 9px 0 0; }
+.mini-choice { border: 1.2px solid var(--line); border-radius: 5px; padding: 6px 7px; font-size: 9px;
+               font-weight: 700; color: var(--ink-2); transition: all .2s ease; }
+.mini-choice.on { border-color: var(--ok); color: var(--ok); background: rgba(47,158,68,.06); }
+
+/* ─────────────────────── ENGINE ─────────────────────── */
+#spot {
+  position: fixed; z-index: 1150; border-radius: 10px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(10,13,16,.66), 0 0 0 2px rgba(255,255,255,.6);
+  opacity: 0; top: 50%; left: 50%; width: 0; height: 0;
+  transition: opacity .3s ease, top .5s cubic-bezier(.22,.9,.3,1),
+              left .5s cubic-bezier(.22,.9,.3,1), width .5s cubic-bezier(.22,.9,.3,1),
+              height .5s cubic-bezier(.22,.9,.3,1), border-radius .5s ease;
+}
+#spot.on { opacity: 1; }
+#spot.no-anim { transition: none !important; }
+
+.narration {
+  position: fixed; left: 50%; top: 74px; transform: translateX(-50%) translateY(-8px);
+  z-index: 1500; background: #1a1d1f; color: #fff; padding: 11px 20px; border-radius: 999px;
+  font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(16,24,40,.25);
+  opacity: 0; pointer-events: none; transition: opacity .3s ease, transform .3s ease;
+  max-width: min(700px, calc(100vw - 60px)); text-align: center;
+}
+.narration.in { opacity: 1; transform: translateX(-50%) translateY(0); }
+.narration .step-n { display: inline-block; background: rgba(255,255,255,.16); border-radius: 999px;
+                     font-size: 10px; font-weight: 700; padding: 2px 7px; margin-right: 9px; }
+
+.tour-bar {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 1500;
+  display: flex; align-items: center; gap: 6px; background: #1a1d1f; color: #fff;
+  border-radius: 999px; padding: 5px 6px 5px 14px; box-shadow: 0 10px 30px rgba(16,24,40,.28);
+}
+.tour-bar .dots { display: flex; gap: 4px; margin-right: 8px; }
+.tour-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.28);
+                 transition: background .2s ease, transform .15s ease; cursor: pointer; }
+.tour-bar .dot:hover { background: rgba(255,255,255,.6); transform: scale(1.35); }
+.tour-bar .dot.done { background: rgba(255,255,255,.55); }
+.tour-bar .dot.on { background: #fff; transform: scale(1.35); }
+.tour-bar .step-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.65);
+                        margin-right: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tour-bar button { font-family: inherit; font-size: 11px; font-weight: 600; border: none; cursor: pointer;
+                   border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.14); color: #fff;
+                   white-space: nowrap; flex: none; width: auto; }
+.tour-bar button:hover { background: rgba(255,255,255,.26); }
+.tour-bar button.tnav { padding: 5px 10px; font-size: 10px; line-height: 1; }
+.tour-bar button:disabled { opacity: .3; cursor: default; }
+.tour-bar button:disabled:hover { background: rgba(255,255,255,.14); }
+.tour-bar button.go { background: #40c057; }
+.tour-bar button.go:hover { background: #37b24d; }
+
+#hero {
+  position: fixed; inset: 0; z-index: 1600; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(14,18,22,.76); opacity: 0; transition: opacity .55s ease; }
+#hero.in { opacity: 1; }
+#hero.out { opacity: 0; pointer-events: none; }
+.hero-card {
+  background: #fff; border-radius: 16px; width: 690px; max-width: 100%;
+  padding: 40px 46px 30px; box-shadow: 0 40px 110px rgba(0,0,0,.42);
+  transform: translateY(14px) scale(.982);
+  transition: transform .55s cubic-bezier(.2,.85,.3,1); }
+#hero.in .hero-card { transform: none; }
+.hero-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; }
+.hero-brand .wm { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--primary); }
+.hero-brand .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .9px;
+                       text-transform: uppercase; color: var(--dimmed); }
+.hero-card h1 { font-size: 27px; line-height: 1.22; margin: 0 0 12px; letter-spacing: -.4px; }
+.hero-card .lede { font-size: 15px; color: var(--ink-2); line-height: 1.55; margin: 0 0 24px; }
+.hero-list { border-top: 1px solid var(--line); margin-bottom: 24px; }
+.hero-item { display: flex; gap: 13px; align-items: flex-start;
+             padding: 12px 0; border-bottom: 1px solid var(--line); }
+.hero-num { width: 21px; height: 21px; min-width: 21px; border-radius: 50%; background: var(--primary-10);
+            color: var(--primary); font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.hero-item b { font-size: 13.5px; display: block; }
+.hero-item span { font-size: 12.5px; color: var(--dimmed); }
+.hero-foot { display: flex; align-items: center; gap: 14px; }
+.hero-foot .count { font-size: 12px; color: var(--dimmed); }
+#heroStart { height: 42px; border: none; border-radius: 8px; background: var(--primary); color: #fff;
+             font-family: inherit; font-size: 13.5px; font-weight: 700; padding: 0 24px; cursor: pointer; }
+#heroStart:hover { background: var(--primary-dark); }
+
+.ap-overlay { position: fixed; inset: 0; z-index: 1400; background: rgba(20,22,24,.55);
+              display: none; align-items: center; justify-content: center; padding: 24px; }
+.ap-overlay.on { display: flex; }
+.ap-card { background: #fff; border-radius: 12px; width: 560px; max-width: 100%; max-height: 92vh;
+           overflow-y: auto; box-shadow: 0 30px 80px rgba(0,0,0,.35); padding: 26px 28px 22px; }
+.ap-card h2 { margin: 0 0 4px; font-size: 19px; }
+.ap-sub { color: var(--dimmed); font-size: 13px; margin-bottom: 20px; }
+.ap-field { margin-bottom: 16px; }
+.ap-label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+.ap-label .req { color: var(--alert); margin-left: 3px; }
+.ap-field input[type=text], .ap-field textarea {
+  width: 100%; border: 1px solid var(--line-2); border-radius: var(--radius);
+  padding: 9px 11px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; }
+.ap-field textarea { min-height: 88px; resize: vertical; }
+.ap-field input:focus, .ap-field textarea:focus {
+  outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-10); }
+.ap-field.bad input, .ap-field.bad textarea { border-color: var(--alert); background: rgba(224,49,49,.03); }
+.ap-err { color: var(--alert); font-size: 11.5px; margin-top: 5px; display: none; }
+.ap-field.bad .ap-err { display: block; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice { border: 1.5px solid var(--line); border-radius: 8px; padding: 11px 12px; cursor: pointer;
+          display: flex; gap: 10px; align-items: flex-start; transition: all .12s ease; background: #fff; }
+.choice:hover { border-color: var(--line-2); background: var(--hover); }
+.choice .dot { width: 15px; height: 15px; min-width: 15px; border-radius: 50%;
+               border: 2px solid var(--line-2); margin-top: 1px; }
+.choice .ct { font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.choice .cs { font-size: 11px; color: var(--dimmed); margin-top: 2px; }
+.choice.on .dot { border-color: currentColor; box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 9px currentColor; }
+.choice.on .ct { color: inherit; }
+.choice[data-v="approve"].on,
+.choice[data-v="approve_comments"].on { border-color: #2f9e44; color: #2f9e44; background: rgba(47,158,68,.05); }
+.choice[data-v="changes"].on          { border-color: #f08c00; color: #f08c00; background: rgba(240,140,0,.05); }
+.choice[data-v="reject"].on           { border-color: var(--alert); color: var(--alert); background: rgba(224,49,49,.05); }
+.ap-actions { display: flex; gap: 10px; margin-top: 22px; align-items: center; }
+.ap-actions .grow { flex: 1; }
+.btn-lg { height: 40px; border-radius: 6px; font-size: 13px; font-weight: 700; font-family: inherit;
+          cursor: pointer; padding: 0 20px; border: none; }
+.btn-send { background: var(--primary); color: #fff; }
+.btn-send:hover { background: var(--primary-dark); }
+.btn-cancel { background: #fff; border: 1px solid var(--line-2); color: var(--ink-2); }
+.ap-done { text-align: center; padding: 18px 0 6px; }
+.ap-done .tick { width: 54px; height: 54px; border-radius: 50%; background: #d3f9d8; color: #2f9e44;
+                 display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.ap-done h3 { margin: 0 0 6px; font-size: 17px; }
+.ap-done p { color: var(--dimmed); font-size: 13px; margin: 0 0 16px; }
+.payload { text-align: left; background: #f6f8f9; border: 1px solid var(--line); border-radius: 6px;
+           padding: 12px; font-family: var(--mono); font-size: 11.5px;
+           white-space: pre-wrap; word-break: break-word; color: var(--ink-2);
+           max-height: 200px; overflow-y: auto; }
+.ap-hintline { font-size: 11px; color: var(--dimmed); margin-top: 12px; line-height: 1.5; }
+.review-btn { position: fixed; top: 12px; right: 20px; z-index: 1250; background: #1a1d1f; color: #fff;
+              border: none; border-radius: 999px; font-family: inherit; font-size: 11.5px; font-weight: 700;
+              padding: 7px 15px; cursor: pointer; box-shadow: 0 4px 14px rgba(16,24,40,.22);
+              display: flex; align-items: center; gap: 7px; }
+.review-btn:hover { background: #000; }
+.review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #40c057; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+    <span class="mark">feature-walkthrough</span>
+    <span class="sep"></span>
+    <span class="crumb" id="crumb">~/work/acme-claims</span>
+    <span class="spacer"></span>
+    <span class="tag">how it works</span>
+  </div>
+
+  <div class="work">
+    <!-- the codebase being read -->
+    <div class="files" id="files">
+      <h3>The codebase</h3>
+      <div id="fileRows"></div>
+    </div>
+
+    <!-- the session -->
+    <div class="termwrap" id="termwrap">
+      <div class="termhead">
+        <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
+        <span class="tt">claude — acme-claims</span>
+      </div>
+      <div class="term" id="term"></div>
+    </div>
+
+    <!-- what comes out -->
+    <div class="outwrap" id="outwrap">
+      <div class="outhead">
+        <span class="name" id="outName">no file yet</span>
+        <span class="size" id="outSize"></span>
+      </div>
+      <div class="outbody" id="outbody">
+        <div class="empty" id="outEmpty">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+          </svg>
+          <span>The walkthrough appears here</span>
+        </div>
+
+        <div class="mini" id="mini">
+          <div class="mini-chrome">
+            <div class="mini-nav"><span class="b">ACME</span><span class="n">Claims</span></div>
+            <div class="mini-body">
+              <h4 class="mini-h" id="miniH">Open claims</h4>
+              <table class="mtable">
+                <thead><tr><th>Claim</th><th>Adjuster</th><th>Last touched</th><th>Status</th></tr></thead>
+                <tbody id="miniRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="mini-spot" id="miniSpot"></div>
+          <div class="mini-cap" id="miniCap"></div>
+          <div class="mini-bar" id="miniBar"></div>
+
+          <div class="mini-over" id="miniIntro">
+            <div class="mini-card">
+              <div class="eye">Acme Claims · Stale claim flags</div>
+              <h4>Your team has asked for a change.</h4>
+              <p>This is what we think we heard.</p>
+              <div class="it"><div class="num">1</div><div><b>Watch every open claim</b><span>Quietly, in the background.</span></div></div>
+              <div class="it"><div class="num">2</div><div><b>Flag anything untouched for five days</b><span>Before it goes cold.</span></div></div>
+              <div class="it"><div class="num">3</div><div><b>On the adjuster's own list</b><span>Where they already work.</span></div></div>
+            </div>
+          </div>
+
+          <div class="mini-over" id="miniReview">
+            <div class="mini-card">
+              <h4>Looks good?</h4>
+              <p>Acme Claims — Stale claim flags.</p>
+              <div class="mini-choices">
+                <div class="mini-choice" id="mc1">Approve</div>
+                <div class="mini-choice">Approve with comments</div>
+                <div class="mini-choice">Request changes</div>
+                <div class="mini-choice">Reject</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="hero">
+  <div class="hero-card">
+    <div class="hero-brand">
+      <span class="wm">feature-walkthrough</span>
+      <span class="eyebrow">How it works</span>
+    </div>
+    <h1>A customer asked for a feature. You think you understood them.</h1>
+    <p class="lede">This is how you find out whether you did — before you build it, not after.
+       Watch what the skill actually does, start to finish.</p>
+    <div class="hero-list">
+      <div class="hero-item"><div class="hero-num">1</div>
+        <div><b>You give it two things</b><span>A codebase, and what the feature should do.</span></div></div>
+      <div class="hero-item"><div class="hero-num">2</div>
+        <div><b>It reads the codebase for the look, not the logic</b><span>Real colours, real components, real vocabulary.</span></div></div>
+      <div class="hero-item"><div class="hero-num">3</div>
+        <div><b>You get one HTML file that plays itself</b><span>Send it. They double-click it. They answer.</span></div></div>
+    </div>
+    <div class="hero-foot">
+      <button id="heroStart">Show me</button>
+      <span class="count">Starting in <b id="heroCount">7</b>…</span>
+    </div>
+  </div>
+</div>
+
+<div id="spot"></div>
+<div class="narration" id="narration" aria-live="polite"></div>
+<div class="tour-bar" id="tourBar">
+  <div class="dots" id="tourDots"></div>
+  <span class="step-label" id="tourStepLabel">1 / 1</span>
+  <button class="tnav" id="tourPrev" title="Previous step">&#9664;</button>
+  <button class="tnav" id="tourNext" title="Next step">&#9654;</button>
+  <button id="tourToggle">Pause</button>
+  <button id="tourReplay">Replay</button>
+  <button class="go" id="tourFeedback">Give feedback</button>
+</div>
+
+<button class="review-btn" id="reviewBtn"><span class="g"></span> Questions? Tell us</button>
+
+<div class="ap-overlay" id="apOverlay">
+  <div class="ap-card">
+    <div id="apForm">
+      <h2>Does this make sense?</h2>
+      <div class="ap-sub" id="apSubtitle">feature-walkthrough — how it works. Tell us what was unclear.</div>
+
+      <div class="ap-field" id="fName">
+        <label class="ap-label" for="apName">Your name <span class="req">*</span></label>
+        <input type="text" id="apName" placeholder="Who is reviewing this?" autocomplete="name" />
+        <div class="ap-err">We need to know who reviewed this.</div>
+      </div>
+
+      <div class="ap-field">
+        <label class="ap-label" for="apOrg">Company / role <span style="color:#868e96;font-weight:500">(optional)</span></label>
+        <input type="text" id="apOrg" placeholder="e.g. Acme — Head of Engineering" />
+      </div>
+
+      <div class="ap-field" id="fDecision">
+        <label class="ap-label">Your verdict <span class="req">*</span></label>
+        <div class="choices" id="apChoices">
+          <div class="choice" data-v="approve"><div class="dot"></div><div><div class="ct">Clear</div><div class="cs">I understand what this does</div></div></div>
+          <div class="choice" data-v="approve_comments"><div class="dot"></div><div><div class="ct">Clear, with notes</div><div class="cs">Mostly, but see comments</div></div></div>
+          <div class="choice" data-v="changes"><div class="dot"></div><div><div class="ct">Needs work</div><div class="cs">Parts of this did not land</div></div></div>
+          <div class="choice" data-v="reject"><div class="dot"></div><div><div class="ct">Lost me</div><div class="cs">I still do not get it</div></div></div>
+        </div>
+        <div class="ap-err">Pick one.</div>
+      </div>
+
+      <div class="ap-field" id="fComment">
+        <label class="ap-label" id="apCommentLabel" for="apComment">Comments <span style="color:#868e96;font-weight:500">(optional)</span></label>
+        <textarea id="apComment" placeholder="What would you change?"></textarea>
+        <div class="ap-err">Tell us what needs to change.</div>
+      </div>
+
+      <div class="ap-actions">
+        <div class="grow"></div>
+        <button class="btn-lg btn-cancel" id="apCancel">Cancel</button>
+        <button class="btn-lg btn-send" id="apSend">Send</button>
+      </div>
+    </div>
+
+    <div id="apDone" style="display:none">
+      <div class="ap-done">
+        <div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h3 id="apDoneTitle">Thank you</h3>
+        <p id="apDoneMsg"></p>
+        <div class="payload" id="apPayload"></div>
+        <div class="ap-actions">
+          <button class="btn-lg btn-cancel" id="apCopy">Copy</button>
+          <button class="btn-lg btn-cancel" id="apDownload">Download</button>
+          <div class="grow"></div>
+          <button class="btn-lg btn-send" id="apClose">Close</button>
+        </div>
+        <div class="ap-hintline" id="apHint"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   feature-walkthrough — how it works
+
+   This page was built with the skill it describes. The screen it shows is a
+   Claude Code session; the feature being demonstrated is the skill itself.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const PRODUCT = 'feature-walkthrough';
+const FEATURE = 'How it works';
+const FEEDBACK_EMAIL = '';
+const WEBHOOK_URL    = '';
+const WEBHOOK_STYLE  = 'slack';
+
+/* ─── The codebase pane ─── */
+const FILES = [
+  { n:'acme-claims',            dir:true  },
+  { n:'src/theme.ts',           key:'theme'  },
+  { n:'components/',            dir:true, nested:true },
+  { n:'ClaimsTable.tsx',        nested:true, key:'comp' },
+  { n:'StatusPill.tsx',         nested:true, key:'comp' },
+  { n:'db/schema.sql',          key:'vocab' },
+  { n:'locales/en.json',        key:'vocab' },
+  { n:'src/api/claims.ts',      key:null  },
+  { n:'package.json',           key:null  },
+];
+let filesRead = new Set();
+
+function renderFiles(){
+  $('fileRows').innerHTML = FILES.map((f,i)=>{
+    const cls = ['frow', f.dir?'dir':'', f.nested?'nested':'', filesRead.has(i)?'read':''].filter(Boolean).join(' ');
+    const icon = f.dir
+      ? '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'
+      : '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+    return `<div class="${cls}" data-i="${i}">${icon}<span>${f.n}</span><span class="tick">&#10003;</span></div>`;
+  }).join('');
+}
+function markRead(key){
+  FILES.forEach((f,i)=>{ if(f.key===key) filesRead.add(i); });
+  renderFiles();
+}
+
+/* ─── The session transcript ─── */
+const T = [
+  { t:'$ claude', c:'dim' },
+  { t:'' },
+  { t:'> /feature-walkthrough', c:'user bold' },
+  { t:'' },
+  { t:'  I need two things before I start.' },
+  { t:'    1. The path to the codebase this feature belongs to' },
+  { t:'    2. What the feature should do, in as much detail as you have' },
+  { t:'' },
+  { t:'> ~/work/acme-claims', c:'user' },
+  { t:'> When a claim sits untouched for five days, flag it on the', c:'user' },
+  { t:'  adjuster\'s own list so nothing goes quiet.', c:'user' },
+  { t:'' },
+  { t:'  Reading the codebase.', c:'dim' },
+  { t:'' },
+  { t:'  src/theme.ts ................ Mantine theme, real values', c:'ok' },
+  { t:'  components/ClaimsTable.tsx .. table shape and density', c:'ok' },
+  { t:'  components/StatusPill.tsx ... how a status is drawn', c:'ok' },
+  { t:'  db/schema.sql ............... the domain model', c:'ok' },
+  { t:'  locales/en.json ............. the words users actually see', c:'ok' },
+  { t:'' },
+  { t:'  Here is what I found.', c:'bold' },
+  { t:'' },
+  { t:'  Acme Claims, React and Mantine.' },
+  { t:'  Primary #2f5fa0, borders #dee2e6, radius 4px, 14px system font.' },
+  { t:'  Dense table, uppercase headers, filled pills in capsules.' },
+  { t:'  You call the records claims. The people are adjusters.' },
+  { t:'  Statuses: OPEN, IN REVIEW, APPROVED, DENIED, CLOSED.' },
+  { t:'' },
+  { t:'  And here is what I think the feature does.', c:'bold' },
+  { t:'' },
+  { t:'    1. Watches every open claim for inactivity' },
+  { t:'    2. Flags any claim untouched for five days' },
+  { t:'    3. Puts the flag on the adjuster\'s own list' },
+  { t:'' },
+  { t:'  Have I got that right?', c:'warn' },
+  { t:'' },
+  { t:'> yes, that is it', c:'user bold' },
+  { t:'' },
+  { t:'  Writing stale-claims-walkthrough.html', c:'dim' },
+  { t:'  Checking the JavaScript parses ......... ok', c:'ok' },
+  { t:'  Rendering it to confirm it draws ....... ok', c:'ok' },
+  { t:'  Checking it has no outside dependencies  ok', c:'ok' },
+  { t:'' },
+  { t:'  Done.', c:'bold' },
+  { t:'  ~/work/acme-claims/stale-claims-walkthrough.html', c:'ok' },
+  { t:'  One file, 84 KB. Send it to them.' },
+];
+let termUpTo = 0;
+
+function renderTerm(){
+  const lines = T.slice(0, termUpTo).map(l =>
+    l.t === '' ? '<div class="tline gap"></div>'
+               : `<div class="tline ${l.c||''}">${l.t}</div>`).join('');
+  const caret = termUpTo < T.length ? '<div class="tline"><span class="caret"></span></div>' : '';
+  const el = $('term');
+  el.innerHTML = lines + caret;
+  el.scrollTop = el.scrollHeight;
+}
+/* Type the transcript out line by line, so it reads like it is happening. */
+async function typeTo(n, perLine){
+  perLine = perLine || 55;
+  while(termUpTo < n){ termUpTo++; renderTerm(); await sleep(T[termUpTo-1].t===''?18:perLine); }
+}
+
+/* ─── The output pane's miniature walkthrough ─── */
+const CLAIMS = [
+  { c:'CLM-4471', a:'R. Okonkwo', d:'2 days ago',  s:'OPEN',      cls:'open', stale:false },
+  { c:'CLM-4462', a:'R. Okonkwo', d:'9 days ago',  s:'OPEN',      cls:'open', stale:true  },
+  { c:'CLM-4455', a:'R. Okonkwo', d:'1 day ago',   s:'IN REVIEW', cls:'rev',  stale:false },
+  { c:'CLM-4439', a:'R. Okonkwo', d:'12 days ago', s:'OPEN',      cls:'open', stale:true  },
+  { c:'CLM-4428', a:'R. Okonkwo', d:'3 hours ago', s:'IN REVIEW', cls:'rev',  stale:false },
+];
+let miniFlagged = false;
+
+function renderMini(){
+  $('miniRows').innerHTML = CLAIMS.map(r =>
+    `<tr class="${miniFlagged && r.stale ? 'flag' : ''}">
+       <td><b>${r.c}</b></td><td>${r.a}</td><td>${r.d}</td>
+       <td><span class="mpill ${r.cls}">${r.s}</span></td></tr>`).join('');
+}
+function miniCaption(text){
+  const c = $('miniCap');
+  if(!text){ c.classList.remove('in'); return; }
+  c.textContent = text; c.classList.add('in');
+}
+function miniSpotOn(sel, pad){
+  pad = pad==null ? 5 : pad;
+  const host = $('outbody').getBoundingClientRect();
+  const t = document.querySelector(sel);
+  if(!t){ $('miniSpot').classList.remove('on'); return; }
+  const r = t.getBoundingClientRect();
+  const s = $('miniSpot');
+  s.style.top    = (r.top - host.top - pad) + 'px';
+  s.style.left   = (r.left - host.left - pad) + 'px';
+  s.style.width  = (r.width + pad*2) + 'px';
+  s.style.height = (r.height + pad*2) + 'px';
+  s.classList.add('on');
+}
+function miniSpotOff(){ $('miniSpot').classList.remove('on'); }
+function miniDots(active, total){
+  const b = $('miniBar');
+  b.innerHTML = Array.from({length: total}, (_,i)=>`<i class="${i===active?'on':''}"></i>`).join('');
+  b.classList.add('on');
+}
+
+function resetMockup(){
+  filesRead = new Set(); renderFiles();
+  termUpTo = 0; renderTerm();
+  miniFlagged = false; renderMini();
+  $('mini').classList.remove('on');
+  $('outEmpty').style.opacity = '1';
+  $('outName').textContent = 'no file yet';
+  $('outSize').textContent = '';
+  $('miniIntro').classList.remove('on');
+  $('miniReview').classList.remove('on');
+  $('mc1').classList.remove('on');
+  miniCaption(''); miniSpotOff();
+  $('miniBar').classList.remove('on');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE TOUR
+   ══════════════════════════════════════════════════════════════════════════ */
+const TOUR = [
+  { text:'A customer asked for a feature. You think you understood them. This is how you check, before you build it.',
+    run: async()=>{ resetMockup(); await typeTo(2, 40); await spotReveal(['#termwrap'], 10); } },
+
+  { text:'You invoke the skill. It asks for two things, and only two things.',
+    run: async()=>{ await typeTo(8, 34); await spotReveal(['#term'], 10); } },
+
+  { text:'The codebase the feature belongs to, and what the feature should do. That is the entire input.',
+    run: async()=>{ await typeTo(12, 26); await spotReveal(['#term'], 10); } },
+
+  { text:'Now it reads the codebase — not for the logic, but for the look. This is the step that makes the difference.',
+    run: async()=>{ await typeTo(14, 30); await spotReveal(['#files'], 10); } },
+
+  { text:'The theme file, for the real colours and spacing. It never invents a palette.',
+    run: async()=>{ markRead('theme'); await typeTo(15, 30);
+                    await sleep(180); await spotReveal(['.frow[data-i="1"]'], 6); } },
+
+  { text:'The shared components, for how a table and a status pill are actually drawn in this product.',
+    run: async()=>{ markRead('comp'); await typeTo(17, 30);
+                    await sleep(180); await spotReveal(['.frow[data-i="3"]','.frow[data-i="4"]'], 6); } },
+
+  { text:'The schema and the language file, for the words. Your customer says claims and adjusters, so the mockup says claims and adjusters.',
+    run: async()=>{ markRead('vocab'); await typeTo(20, 30);
+                    await sleep(180); await spotReveal(['.frow[data-i="5"]','.frow[data-i="6"]'], 6); } },
+
+  { text:'Then it stops and says back what it understood — the style it found, and the feature it thinks you described.',
+    run: async()=>{ await typeTo(35, 17); await spotReveal(['#term'], 10); } },
+
+  { text:'It waits there. One message, and you catch a misunderstanding before a single file is written.',
+    run: async()=>{ await typeTo(38, 24); await spotReveal(['#term'], 10); } },
+
+  { text:'Only then does it build. One HTML file — no build step, no dependencies, no server, nothing fetched.',
+    run: async()=>{ await typeTo(T.length, 22);
+                    $('outName').textContent = 'stale-claims-walkthrough.html';
+                    $('outSize').textContent = '84 KB';
+                    await spotReveal(['#outwrap'], 10); } },
+
+  { text:'You send that one file. They double-click it. It opens with what we think we heard.',
+    run: async()=>{ $('outEmpty').style.opacity='0'; $('mini').classList.add('on');
+                    await sleep(340); $('miniIntro').classList.add('on');
+                    await sleep(260); await spotReveal(['#outbody'], 10); } },
+
+  { text:'Then it plays itself. A caption, a spotlight, and the screen actually moving — not a screenshot with a label on it.',
+    run: async()=>{ $('miniIntro').classList.remove('on'); await sleep(420);
+                    miniCaption('Claims nobody has touched in five days.'); miniDots(1, 4);
+                    await sleep(420); miniFlagged = true; renderMini();
+                    await sleep(220); miniSpotOn('#miniRows', 3);
+                    await spotReveal(['#outbody'], 10); } },
+
+  { text:'Every step is one idea, in your customer\'s own words, about their own screen.',
+    run: async()=>{ miniCaption('Two of them are yours, and they have gone quiet.'); miniDots(2, 4);
+                    await sleep(300); miniSpotOn('#miniRows', 3);
+                    await spotReveal(['#outbody'], 10); } },
+
+  { text:'And at the end it asks the only question that matters, inside the file, where they are already looking.',
+    run: async()=>{ miniCaption(''); miniSpotOff(); $('miniBar').classList.remove('on');
+                    await sleep(300); $('miniReview').classList.add('on');
+                    await sleep(500); $('mc1').classList.add('on');
+                    await spotReveal(['#outbody'], 10); } },
+
+  { text:'Their answer comes back before you wrote a line of the feature. That is the whole idea. Does this make sense?',
+    run: async()=>{ spotOff(); } },
+];
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ENGINE — unchanged from template/walkthrough-template.html
+   ══════════════════════════════════════════════════════════════════════════ */
+function $(id){ return document.getElementById(id); }
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+let tourToken=0, tourAuto=false, tourPaused=false, currentStep=0;
+
+function narrate(text,n,total){
+  const pill=$('narration');
+  pill.innerHTML = `<span class="step-n">${n}/${total}</span>${text}`;
+  pill.classList.add('in');
+}
+function hideNarration(){ $('narration').classList.remove('in'); }
+
+let spotTargets = null;
+function computeRect(selectors, pad){
+  const rects = selectors
+    .flatMap(sel => [...document.querySelectorAll(sel)])
+    .map(n => n.getBoundingClientRect())
+    .filter(r => r.width > 0 && r.height > 0);
+  if(!rects.length) return null;
+  const top    = Math.min(...rects.map(r=>r.top))    - pad;
+  const left   = Math.min(...rects.map(r=>r.left))   - pad;
+  const bottom = Math.max(...rects.map(r=>r.bottom)) + pad;
+  const right  = Math.max(...rects.map(r=>r.right))  + pad;
+  return { top: Math.max(0, top), left: Math.max(0, left),
+           width:  Math.min(window.innerWidth,  right - left),
+           height: Math.min(window.innerHeight, bottom - top) };
+}
+function applySpot(){
+  const el = $('spot');
+  if(!spotTargets){ el.classList.remove('on'); return; }
+  const r = computeRect(spotTargets.selectors, spotTargets.pad);
+  if(!r){ el.classList.remove('on'); return; }
+  el.style.top=r.top+'px'; el.style.left=r.left+'px';
+  el.style.width=r.width+'px'; el.style.height=r.height+'px';
+  el.classList.add('on');
+}
+async function spotReveal(selectors, pad){
+  pad = (pad==null) ? 12 : pad;
+  spotTargets = { selectors, pad };
+  const el = $('spot'), pill = $('narration');
+  const target = computeRect(selectors, pad);
+  if(!target){ spotOff(); return; }
+  const p = pill.getBoundingClientRect();
+  el.classList.add('no-anim');
+  el.style.borderRadius = '999px';
+  el.style.top = p.top+'px';   el.style.left = p.left+'px';
+  el.style.width = p.width+'px'; el.style.height = p.height+'px';
+  void el.offsetWidth;
+  el.classList.remove('no-anim');
+  el.classList.add('on');
+  await sleep(280);
+  el.style.borderRadius = '10px';
+  el.style.top = target.top+'px';   el.style.left = target.left+'px';
+  el.style.width = target.width+'px'; el.style.height = target.height+'px';
+}
+function spotOff(){ spotTargets = null; $('spot').classList.remove('on'); }
+
+async function hold(ms, token){
+  let waited=0;
+  while(waited<ms){
+    if(token!==undefined && token!==tourToken) throw new Error('superseded');
+    while(tourPaused && (token===undefined || token===tourToken)) await sleep(110);
+    await sleep(80); waited+=80;
+  }
+  if(token!==undefined && token!==tourToken) throw new Error('superseded');
+}
+
+function renderDots(active){
+  $('tourDots').innerHTML = TOUR.map((_,i)=>
+    `<div class="dot ${i===active?'on':(i<active?'done':'')}" data-step="${i}" title="Step ${i+1}"></div>`
+  ).join('');
+}
+function updateTourUI(){
+  renderDots(currentStep);
+  $('tourStepLabel').textContent = `${currentStep+1} / ${TOUR.length}`;
+  $('tourPrev').disabled = currentStep <= 0;
+  $('tourNext').disabled = currentStep >= TOUR.length-1;
+  $('tourToggle').textContent = (tourAuto && !tourPaused) ? 'Pause' : 'Play';
+}
+
+async function playFrom(i, auto){
+  const token = ++tourToken;
+  tourAuto = auto; tourPaused = false;
+  /* Jumping backwards means replaying the transcript from the top, since every
+     step here builds on the one before it. */
+  if(i < currentStep) resetMockup();
+  try{
+    for(let k=i; k<TOUR.length; k++){
+      if(token!==tourToken) return;
+      currentStep = k; updateTourUI();
+      spotOff();
+      narrate(TOUR[k].text, k+1, TOUR.length);
+      await hold(1000, token);
+      await TOUR[k].run();
+      if(token!==tourToken) return;
+      if(!auto){ tourAuto=false; updateTourUI(); return; }
+      await hold(TOUR[k].text.length > 95 ? 3400 : 2600, token);
+    }
+    if(token!==tourToken) return;
+    hideNarration(); spotOff();
+    tourAuto=false; updateTourUI();
+    openApproval();
+  }catch(e){ /* superseded */ }
+}
+const runTour = () => playFrom(0, true);
+function stopTour(){ ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
+
+$('tourPrev').addEventListener('click', ()=>{ if(currentStep>0) playFrom(currentStep-1, false); });
+$('tourNext').addEventListener('click', ()=>{ if(currentStep<TOUR.length-1) playFrom(currentStep+1, false); });
+$('tourDots').addEventListener('click', e=>{
+  const d=e.target.closest('.dot'); if(!d) return;
+  playFrom(parseInt(d.dataset.step,10), false);
+});
+$('tourToggle').addEventListener('click',()=>{
+  if(tourAuto){ tourPaused = !tourPaused; updateTourUI(); }
+  else { playFrom(Math.min(currentStep+1, TOUR.length-1), true); }
+});
+$('tourReplay').addEventListener('click',()=>{ resetMockup(); playFrom(0, true); });
+const toFeedback = ()=>{ stopTour(); hideNarration(); spotOff(); openApproval(); };
+$('tourFeedback').addEventListener('click', toFeedback);
+$('reviewBtn').addEventListener('click', toFeedback);
+window.addEventListener('resize', applySpot);
+
+let decision=null;
+function openApproval(){ $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
+function closeApproval(){ $('apOverlay').classList.remove('on'); }
+
+$('apChoices').addEventListener('click', e=>{
+  const c=e.target.closest('.choice'); if(!c) return;
+  decision=c.dataset.v;
+  $('apChoices').querySelectorAll('.choice').forEach(x=>x.classList.toggle('on', x===c));
+  $('fDecision').classList.remove('bad');
+  const needs = decision!=='approve';
+  $('apCommentLabel').innerHTML = needs
+    ? 'Comments <span class="req">*</span>'
+    : 'Comments <span style="color:#868e96;font-weight:500">(optional)</span>';
+});
+$('apCancel').addEventListener('click', closeApproval);
+$('apClose').addEventListener('click', closeApproval);
+
+const DECISION_LABEL = { approve:'CLEAR', approve_comments:'CLEAR WITH NOTES',
+  changes:'NEEDS WORK', reject:'LOST ME' };
+
+function buildPayloadText(v){
+  return [
+    `${PRODUCT} — ${FEATURE}`,
+    `${DECISION_LABEL[v.decision]}`,
+    ``,
+    `Reviewer: ${v.name}${v.org ? ` — ${v.org}` : ''}`,
+    `When: ${v.when}`,
+    v.comment ? `Comments:\n  ${v.comment.replace(/\n/g,'\n  ')}` : `Comments: none`,
+  ].join('\n');
+}
+
+$('apSend').addEventListener('click', async ()=>{
+  const name=$('apName').value.trim(), org=$('apOrg').value.trim(), comment=$('apComment').value.trim();
+  let ok=true;
+  $('fName').classList.toggle('bad', !name); if(!name) ok=false;
+  $('fDecision').classList.toggle('bad', !decision); if(!decision) ok=false;
+  const commentRequired = decision && decision!=='approve';
+  $('fComment').classList.toggle('bad', !!(commentRequired && !comment));
+  if(commentRequired && !comment) ok=false;
+  if(!ok){ (!name ? $('apName') : $('apComment')).focus(); return; }
+
+  const payload = { name, org, comment, decision,
+    when: new Date().toLocaleString(undefined,{ dateStyle:'medium', timeStyle:'short' }) };
+  const text = buildPayloadText(payload);
+
+  let delivered=false;
+  if(WEBHOOK_URL){
+    try{
+      const body = WEBHOOK_STYLE==='discord' ? { content: text } : { text };
+      await fetch(WEBHOOK_URL,{ method:'POST', headers:{'Content-Type':'text/plain'},
+                                body: JSON.stringify(body) });
+      delivered=true;
+    }catch(e){ delivered=false; }
+  }
+
+  $('apForm').style.display='none'; $('apDone').style.display='block';
+  $('apDoneTitle').textContent = delivered ? 'Sent — thank you' : 'Recorded';
+  $('apDoneMsg').textContent = delivered
+    ? 'Your answer has been posted to the team.'
+    : 'Copy it or download it, and send it wherever suits you.';
+  $('apPayload').textContent = text;
+  $('apHint').textContent = delivered ? '' : 'Nothing leaves this page until you press one of the buttons above.';
+  window.__lastReview = { payload, text };
+});
+
+$('apCopy').addEventListener('click', ()=>{
+  const t=$('apPayload').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t).then(()=>{
+      $('apCopy').textContent='Copied'; setTimeout(()=>$('apCopy').textContent='Copy',1600);
+    }).catch(()=>{});
+  }
+});
+$('apDownload').addEventListener('click', ()=>{
+  const r=window.__lastReview; if(!r) return;
+  const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const blob = new Blob([r.text], { type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `feature-walkthrough-feedback-${slug(r.payload.name)}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+async function showHero(){
+  const h=$('hero');
+  await sleep(250);
+  h.classList.add('in');
+  let n=7; $('heroCount').textContent=n;
+  const tick=setInterval(()=>{ n--; $('heroCount').textContent=Math.max(0,n); }, 1000);
+  await new Promise(res=>{
+    let done=false;
+    const go=()=>{ if(done) return; done=true; clearInterval(tick); res(); };
+    $('heroStart').addEventListener('click', go, { once:true });
+    h.addEventListener('click', e=>{ if(e.target===h) go(); });
+    setTimeout(go, 7400);
+  });
+  h.classList.remove('in'); h.classList.add('out');
+  await sleep(560);
+  h.style.display='none';
+}
+
+resetMockup(); updateTourUI();
+showHero().then(runTour);
+</script>
+</body>
+</html>
