@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Meridian Specialty Underwriter Alerts</title>
+<style>
+  :root {
+    /* Pulled from the live Meridian Specialty app (Mantine theme) */
+    --primary:      #2f5fa0;
+    --primary-10:   rgba(47,95,160,.10);
+    --primary-dark: #274f87;
+    --ink:          #000000;
+    --ink-2:        #495057;
+    --dimmed:       #868e96;
+    --line:         #dee2e6;
+    --line-2:       #ced4da;
+    --bg:           #ffffff;
+    --hover:        #f8f9fa;
+
+    /* Status pill colors, exactly as the app renders them */
+    --st-quoted:    #fab005;
+    --st-bound:     #569fb0;
+    --st-declined:  #fa5252;
+    --st-lost:      #2f5fa0;
+    --st-started:   #868e96;
+
+    --alert:        #e03131;
+    --alert-dark:   #c92a2a;
+
+    --nav-w: 260px;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    height: 100%; overflow: hidden;
+  }
+  .shell { display: flex; height: 100vh; }
+
+  /* ─────────────────────────── SIDEBAR ─────────────────────────── */
+  .nav { width: var(--nav-w); min-width: var(--nav-w); border-right: 1px solid var(--line);
+         display: flex; flex-direction: column; background: #fff; }
+  .nav-brand { height: 60px; display: flex; align-items: center; gap: 12px;
+               padding: 0 16px; border-bottom: 1px solid var(--line); }
+  .nav-brand img { height: 30px; width: auto; display: block; }
+  .brand-word { font-size: 15px; font-weight: 800; letter-spacing: 1.4px; color: var(--primary); }
+  .brand-div { width: 1px; height: 24px; background: var(--line); }
+  .platform-mark { color: var(--primary); display: block; }
+  .nav-collapse { margin-left: auto; width: 26px; height: 26px; border-radius: 50%;
+                  border: 1px solid var(--line); background: #fff; color: var(--ink-2);
+                  display: flex; align-items: center; justify-content: center; }
+  .nav-search { margin: 14px 16px 10px; height: 34px; border: 1px solid var(--line);
+                border-radius: var(--radius); display: flex; align-items: center; gap: 8px;
+                padding: 0 10px; color: var(--dimmed); }
+  .nav-search span { flex: 1; }
+  .kbd { font-size: 9px; font-weight: 700; letter-spacing: .25px;
+         background: rgba(134,142,150,.1); color: var(--dimmed); border-radius: 1000px; padding: 2px 6px; }
+  .nav-items { padding: 4px 8px; flex: 1; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 9px 10px;
+              border-radius: var(--radius); color: var(--ink); cursor: pointer; user-select: none; }
+  .nav-item:hover { background: var(--hover); }
+  .nav-item.active { background: var(--primary-10); color: var(--primary); font-weight: 500; }
+  .nav-item .chev { margin-left: auto; color: var(--dimmed); }
+  .nav-sub { padding: 2px 10px 2px 42px; color: var(--ink-2); font-size: 13px; border-radius: var(--radius); }
+  .nav-foot { border-top: 1px solid var(--line); padding: 10px 8px 6px; }
+  .nav-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-10);
+            color: var(--primary); font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; position: relative; }
+  .avatar::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 8px; height: 8px;
+                   border-radius: 50%; background: #40c057; border: 1.5px solid #fff; }
+  .badge-pill { font-size: 9px; font-weight: 700; letter-spacing: .25px; text-transform: uppercase;
+                border-radius: 1000px; padding: 2px 6px; background: rgba(190,75,219,.1); color: #be4bdb; }
+  .version { text-align: center; font-size: 10px; color: var(--dimmed); padding: 4px 0 8px; }
+
+  /* ─────────────────────────── MAIN ─────────────────────────── */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .page-head { padding: 16px 24px 0; font-size: 12px; font-weight: 600;
+               text-transform: uppercase; color: var(--dimmed); }
+  .toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 24px 14px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .seg div { display: flex; align-items: center; gap: 6px; padding: 6px 10px;
+             font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+  .seg div.on { background: var(--hover); color: var(--ink); font-weight: 500; }
+  .view-pill { color: var(--primary); font-weight: 600; font-size: 13px; padding: 5px 10px;
+               border-radius: var(--radius); background: var(--primary-10); white-space: nowrap; }
+  .icon-btn { width: 30px; height: 30px; border: 1px solid var(--line); border-radius: var(--radius);
+              background: #fff; color: var(--ink-2); display: flex; align-items: center; justify-content: center; }
+  .field { height: 30px; border: 1px solid var(--line); border-radius: var(--radius);
+           display: flex; align-items: center; gap: 7px; padding: 0 9px; color: var(--dimmed); font-size: 13px; }
+  .field.describe { width: 200px; }
+  .field.search { width: 190px; }
+  .field .go { margin-left: auto; width: 20px; height: 20px; border-radius: 3px; background: var(--hover);
+               display: flex; align-items: center; justify-content: center; color: var(--dimmed); }
+  .btn-primary { height: 30px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius);
+                 font-size: 12px; font-weight: 600; padding: 0 14px; display: flex; align-items: center; gap: 6px;
+                 cursor: pointer; white-space: nowrap; font-family: inherit; }
+  .spacer { flex: 1; }
+
+  .filter-chip { display: none; align-items: center; gap: 8px; margin: 0 24px 12px; padding: 8px 12px;
+                 border-radius: var(--radius); background: rgba(224,49,49,.07);
+                 border: 1px solid rgba(224,49,49,.25); font-size: 13px; color: var(--alert-dark);
+                 animation: chipIn .25s ease; }
+  .filter-chip.on { display: flex; }
+  .filter-chip .x { margin-left: auto; cursor: pointer; width: 20px; height: 20px; border-radius: 3px;
+                    display: flex; align-items: center; justify-content: center; }
+  .filter-chip .x:hover { background: rgba(224,49,49,.12); }
+  @keyframes chipIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  /* ─────────────────────────── TABLE ─────────────────────────── */
+  .table-wrap { flex: 1; overflow: auto; border-top: 1px solid var(--line); }
+  table { border-collapse: collapse; width: max-content; min-width: 100%; }
+  thead th { position: sticky; top: 0; z-index: 2; background: #fff; text-align: left;
+             font-size: 14px; font-weight: 700; color: var(--ink); padding: 0 12px; height: 40px;
+             white-space: nowrap; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+  tbody td { padding: 0 12px; height: 44px; font-size: 14px; color: var(--ink);
+             border-bottom: 1px solid var(--line); border-right: 1px solid var(--line);
+             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  tbody tr:hover td { background: var(--hover); }
+  tbody tr.flagged td:first-child { box-shadow: inset 3px 0 0 var(--alert); }
+  td.hit { background: rgba(224,49,49,.06) !important; font-weight: 600; color: var(--alert-dark); }
+  .cb { width: 36px; }
+  .cb i { display: block; width: 15px; height: 15px; border: 1px solid var(--line-2);
+          border-radius: 3px; background: #fff; }
+  .muted { color: var(--dimmed); }
+  .sort-arrow { color: var(--dimmed); font-size: 11px; margin-left: 6px; }
+  .pill { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .25px;
+          text-transform: uppercase; border-radius: var(--radius); padding: 2px 8px; line-height: 14px; }
+  .pill.quoted{background:rgba(250,176,5,.1);color:var(--st-quoted)}
+  .pill.bound,.pill.issued{background:rgba(86,159,176,.1);color:var(--st-bound)}
+  .pill.declined{background:rgba(250,82,82,.1);color:var(--st-declined)}
+  .pill.lost{background:rgba(47,95,160,.1);color:var(--st-lost)}
+  .pill.started{background:rgba(134,142,150,.1);color:var(--st-started)}
+  .empty { padding: 40px; text-align: center; color: var(--dimmed); }
+
+  /* ─────────────────── ALERT BADGE STACK (compact) ─────────────────── */
+  #stack {
+    position: fixed; z-index: 900; display: flex; flex-direction: column; gap: 5px;
+    transition: top .3s cubic-bezier(.2,.8,.3,1), bottom .3s cubic-bezier(.2,.8,.3,1),
+                left .3s cubic-bezier(.2,.8,.3,1), right .3s cubic-bezier(.2,.8,.3,1);
+  }
+  #stack.align-r { align-items: flex-end; }
+  #stack.align-l { align-items: flex-start; }
+  .stack-head {
+    background: var(--alert); color: #fff; border-radius: 999px; padding: 3px 10px;
+    font-size: 10px; font-weight: 700; letter-spacing: .2px; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(224,49,49,.3);
+  }
+  .stack-head .ring { width: 5px; height: 5px; border-radius: 50%; background: #fff;
+                      animation: blip 2s ease-in-out infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+  .alert-badge {
+    background: #fff; border: 1px solid rgba(224,49,49,.5); border-radius: 999px;
+    padding: 4px 11px 4px 4px; display: inline-flex; align-items: center; gap: 7px;
+    cursor: pointer; user-select: none; white-space: nowrap;
+    box-shadow: 0 2px 7px rgba(16,24,40,.09);
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .alert-badge:hover { border-color: var(--alert); box-shadow: 0 4px 12px rgba(224,49,49,.25); }
+  .alert-badge.selected { background: rgba(224,49,49,.07); border-color: var(--alert); }
+  .alert-badge.spotlight { animation: spot 1s ease-in-out infinite; }
+  @keyframes spot {
+    0%,100% { box-shadow: 0 0 0 0 rgba(224,49,49,.45); border-color: var(--alert); }
+    50%     { box-shadow: 0 0 0 7px rgba(224,49,49,0); border-color: var(--alert); }
+  }
+  .alert-count {
+    width: 19px; height: 19px; min-width: 19px; border-radius: 50%;
+    background: var(--alert); color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    animation: countPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes countPulse { 0%,100%{box-shadow:0 0 0 0 rgba(224,49,49,.45)} 60%{box-shadow:0 0 0 5px rgba(224,49,49,0)} }
+  .alert-title { font-size: 11px; font-weight: 600; color: var(--alert-dark); }
+  .stack-hint {
+    font-size: 9.5px; color: var(--dimmed); background: #fff; border: 1px solid var(--line);
+    border-radius: 999px; padding: 2px 8px; white-space: nowrap;
+    opacity: 0; transition: opacity .15s ease; pointer-events: none;
+  }
+  #stack:hover .stack-hint, #stack.show-hint .stack-hint { opacity: 1; }
+  .stack-hint b { color: var(--ink-2); font-weight: 700; }
+  #stack.empty-state .stack-head { background: #40c057; box-shadow: 0 2px 8px rgba(64,192,87,.3); }
+
+  /* ─────────────────────── SETTINGS PANEL ─────────────────────── */
+  #settings { position: fixed; z-index: 950; width: 296px; display: none; background: #fff;
+              border: 1px solid var(--line); border-radius: 8px;
+              box-shadow: 0 16px 44px rgba(16,24,40,.22); padding: 16px; animation: chipIn .18s ease; }
+  #settings.on { display: block; }
+  .set-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .set-note { font-size: 11px; color: var(--dimmed); margin-bottom: 14px; }
+  .set-row { margin-bottom: 14px; }
+  .set-label { font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; display: block; }
+  .num-wrap { display: flex; align-items: center; gap: 8px; }
+  .num-wrap input { width: 68px; height: 32px; border: 1px solid var(--line-2); border-radius: var(--radius);
+                    padding: 0 8px; font-size: 14px; font-family: inherit; }
+  .num-wrap span { font-size: 12px; color: var(--dimmed); }
+  .segmented { display: flex; border: 1px solid var(--line-2); border-radius: var(--radius); overflow: hidden; }
+  .segmented button { flex: 1; padding: 7px 6px; font-size: 12px; font-family: inherit;
+                      background: #fff; border: none; cursor: pointer; color: var(--ink-2); }
+  .segmented button.on { background: var(--primary); color: #fff; font-weight: 600; }
+  .segmented.locked { opacity: .55; }
+  .lock-note { font-size: 10.5px; color: var(--dimmed); margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+  .corners { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .corners button { padding: 7px; font-size: 11px; font-family: inherit; cursor: pointer;
+                    border: 1px solid var(--line-2); border-radius: var(--radius); background: #fff; color: var(--ink-2); }
+  .corners button.on { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+  .set-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .set-actions button { flex: 1; height: 32px; border-radius: var(--radius); font-size: 12px;
+                        font-weight: 600; font-family: inherit; cursor: pointer; }
+  .btn-ghost { background: #fff; border: 1px solid var(--line-2); color: var(--ink-2); }
+  .btn-solid { background: var(--primary); border: none; color: #fff; }
+  .storage-note { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+                  font-size: 10.5px; color: var(--dimmed); line-height: 1.4; }
+
+  .fab { position: fixed; right: 24px; bottom: 24px; width: 46px; height: 46px; border-radius: 50%;
+         background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center;
+         box-shadow: 0 6px 18px rgba(47,95,160,.35); z-index: 800; }
+
+  /* ─── Badge size: small (default) / medium / large ─── */
+  #stack[data-size="s"] .alert-badge { padding: 3px 9px 3px 3px; gap: 6px; }
+  #stack[data-size="s"] .alert-count { width: 16px; height: 16px; min-width: 16px; font-size: 9px; }
+  #stack[data-size="s"] .alert-title { font-size: 10px; }
+  #stack[data-size="s"] .stack-head  { font-size: 9px; padding: 2px 8px; }
+  #stack[data-size="l"] .alert-badge { padding: 6px 15px 6px 6px; gap: 10px; }
+  #stack[data-size="l"] .alert-count { width: 25px; height: 25px; min-width: 25px; font-size: 13px; }
+  #stack[data-size="l"] .alert-title { font-size: 13.5px; }
+  #stack[data-size="l"] .stack-head  { font-size: 11.5px; padding: 4px 13px; }
+  #stack[data-size="l"] .stack-hint  { font-size: 11px; padding: 3px 10px; }
+
+  /* ─────────────── CLOSE FILE (condition one) ─────────────── */
+  .row-close {
+    font-family: inherit; font-size: 10.5px; font-weight: 700; letter-spacing: .2px;
+    border: 1px solid rgba(224,49,49,.45); color: var(--alert-dark); background: #fff;
+    border-radius: var(--radius); padding: 3px 9px; cursor: pointer; white-space: nowrap;
+  }
+  .row-close:hover { background: var(--alert); border-color: var(--alert); color: #fff; }
+  .cb i.on { background: var(--primary); border-color: var(--primary);
+             box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 9px var(--primary); }
+  td.actions { text-align: right; }
+
+  .bulk-bar {
+    position: fixed; left: calc(var(--nav-w) + 50%); transform: translateX(-50%); bottom: 66px;
+    z-index: 1050; display: none; align-items: center; gap: 12px;
+    background: #1a1d1f; color: #fff; border-radius: 999px; padding: 7px 8px 7px 18px;
+    box-shadow: 0 12px 34px rgba(16,24,40,.32); font-size: 12px;
+  }
+  .bulk-bar.on { display: flex; }
+  .bulk-bar button { font-family: inherit; font-size: 11.5px; font-weight: 700; border: none;
+                     cursor: pointer; border-radius: 999px; padding: 6px 14px; }
+  .bulk-bar .b-close { background: var(--alert); color: #fff; }
+  .bulk-bar .b-close:hover { background: var(--alert-dark); }
+  .bulk-bar .b-clear { background: rgba(255,255,255,.14); color: #fff; }
+
+  .reasons { display: flex; flex-direction: column; gap: 7px; }
+  .reason {
+    border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer;
+    display: flex; gap: 10px; align-items: center; background: #fff; transition: all .12s ease;
+    font-size: 13.5px; font-weight: 600;
+  }
+  .reason:hover { border-color: var(--line-2); background: var(--hover); }
+  .reason .dot { width: 15px; height: 15px; min-width: 15px; border-radius: 50%; border: 2px solid var(--line-2); }
+  .reason.on { border-color: var(--alert); color: var(--alert-dark); background: rgba(224,49,49,.04); }
+  .reason.on .dot { border-color: var(--alert);
+                    box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 9px var(--alert); }
+  #cfOtherWrap { margin-top: 9px; display: none; }
+  #cfOtherWrap.on { display: block; }
+  #cfOther { width: 100%; border: 1px solid var(--line-2); border-radius: var(--radius);
+             padding: 9px 11px; font-size: 14px; font-family: inherit; }
+  #cfOther:focus { outline: none; border-color: var(--alert); box-shadow: 0 0 0 3px rgba(224,49,49,.1); }
+  .btn-danger { background: var(--alert); color: #fff; }
+  .btn-danger:hover { background: var(--alert-dark); }
+
+  #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 68px; z-index: 1300;
+           background: #1a1d1f; color: #fff; padding: 9px 17px; border-radius: 999px;
+           font-size: 12px; font-weight: 500; opacity: 0; pointer-events: none;
+           transition: opacity .25s ease; box-shadow: 0 10px 28px rgba(16,24,40,.3); }
+  #toast.on { opacity: 1; }
+
+  /* ─────────────────────── SPOTLIGHT ─────────────────────── */
+  #spot {
+    position: fixed; z-index: 1150; border-radius: 10px; pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(10,13,16,.66), 0 0 0 2px rgba(255,255,255,.6);
+    opacity: 0; top: 50%; left: 50%; width: 0; height: 0;
+    transition: opacity .3s ease, top .5s cubic-bezier(.22,.9,.3,1),
+                left .5s cubic-bezier(.22,.9,.3,1), width .5s cubic-bezier(.22,.9,.3,1),
+                height .5s cubic-bezier(.22,.9,.3,1), border-radius .5s ease;
+  }
+  #spot.on { opacity: 1; }
+  #spot.no-anim { transition: none !important; }
+
+  /* ─────────────────────── GUIDED TOUR ─────────────────────── */
+  .narration {
+    position: fixed; left: 50%; top: 78px; transform: translateX(-50%) translateY(-8px);
+    z-index: 1500; background: #1a1d1f; color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(16,24,40,.25);
+    opacity: 0; pointer-events: none; transition: opacity .3s ease, transform .3s ease;
+    max-width: min(680px, calc(100vw - 60px)); text-align: center;
+  }
+  .narration.in { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .narration .step-n { display: inline-block; background: rgba(255,255,255,.16); border-radius: 999px;
+                       font-size: 10px; font-weight: 700; padding: 2px 7px; margin-right: 9px; }
+
+  .tour-bar {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 1500;
+    display: flex; align-items: center; gap: 6px; background: #1a1d1f; color: #fff;
+    border-radius: 999px; padding: 5px 6px 5px 14px; box-shadow: 0 10px 30px rgba(16,24,40,.28);
+  }
+  .tour-bar .dots { display: flex; gap: 4px; margin-right: 8px; }
+  .tour-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.28);
+                   transition: background .2s ease, transform .15s ease; cursor: pointer; }
+  .tour-bar .dot:hover { background: rgba(255,255,255,.6); transform: scale(1.35); }
+  .tour-bar .dot.done { background: rgba(255,255,255,.55); }
+  .tour-bar .dot.on { background: #fff; transform: scale(1.35); }
+  .tour-bar .step-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.65);
+                          margin-right: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tour-bar button.tnav { padding: 5px 10px; font-size: 10px; line-height: 1; }
+  .tour-bar button:disabled { opacity: .3; cursor: default; }
+  .tour-bar button:disabled:hover { background: rgba(255,255,255,.14); }
+  .tour-bar button { font-family: inherit; font-size: 11px; font-weight: 600; border: none; cursor: pointer;
+                     border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.14); color: #fff;
+                     white-space: nowrap; flex: none; width: auto; }
+  .tour-bar button:hover { background: rgba(255,255,255,.26); }
+  .tour-bar button.go { background: #40c057; }
+  .tour-bar button.go:hover { background: #37b24d; }
+
+  /* ─────────────────────── INTRO CARD ─────────────────────── */
+  #hero {
+    position: fixed; inset: 0; z-index: 1600; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: rgba(14,18,22,.74); opacity: 0;
+    transition: opacity .55s ease; }
+  #hero.in { opacity: 1; }
+  #hero.out { opacity: 0; pointer-events: none; }
+  .hero-card {
+    background: #fff; border-radius: 16px; width: 660px; max-width: 100%;
+    padding: 40px 46px 30px; box-shadow: 0 40px 110px rgba(0,0,0,.42);
+    transform: translateY(14px) scale(.982);
+    transition: transform .55s cubic-bezier(.2,.85,.3,1); }
+  #hero.in .hero-card { transform: none; }
+  .hero-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 26px; }
+  .hero-brand img { height: 30px; }
+  .hero-brand .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .9px;
+                         text-transform: uppercase; color: var(--dimmed); }
+  .hero-card h1 { font-size: 27px; line-height: 1.22; margin: 0 0 12px; letter-spacing: -.4px; }
+  .hero-card .lede { font-size: 15px; color: var(--ink-2); line-height: 1.55; margin: 0 0 24px; }
+  .hero-list { border-top: 1px solid var(--line); margin-bottom: 26px; }
+  .hero-item { display: flex; gap: 13px; align-items: flex-start;
+               padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .hero-num { width: 21px; height: 21px; min-width: 21px; border-radius: 50%; background: var(--primary-10);
+              color: var(--primary); font-size: 11px; font-weight: 700;
+              display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .hero-item b { font-size: 13.5px; display: block; }
+  .hero-item span { font-size: 12.5px; color: var(--dimmed); }
+  .hero-foot { display: flex; align-items: center; gap: 14px; }
+  .hero-foot .count { font-size: 12px; color: var(--dimmed); }
+  #heroStart { height: 42px; border: none; border-radius: 8px; background: var(--primary); color: #fff;
+               font-family: inherit; font-size: 13.5px; font-weight: 700; padding: 0 24px; cursor: pointer; }
+  #heroStart:hover { background: var(--primary-dark); }
+
+  /* ─────────────────────── APPROVAL ─────────────────────── */
+  .ap-overlay { position: fixed; inset: 0; z-index: 1400; background: rgba(20,22,24,.55);
+                display: none; align-items: center; justify-content: center; padding: 24px; }
+  .ap-overlay.on { display: flex; }
+  .ap-card { background: #fff; border-radius: 12px; width: 560px; max-width: 100%; max-height: 92vh;
+             overflow-y: auto; box-shadow: 0 30px 80px rgba(0,0,0,.35); padding: 26px 28px 22px;
+             animation: chipIn .2s ease; }
+  .ap-card h2 { margin: 0 0 4px; font-size: 19px; }
+  .ap-sub { color: var(--dimmed); font-size: 13px; margin-bottom: 20px; }
+  .ap-field { margin-bottom: 16px; }
+  .ap-label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+  .ap-label .req { color: var(--alert); margin-left: 3px; }
+  .ap-field input[type=text], .ap-field textarea {
+    width: 100%; border: 1px solid var(--line-2); border-radius: var(--radius);
+    padding: 9px 11px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; }
+  .ap-field textarea { min-height: 92px; resize: vertical; }
+  .ap-field input:focus, .ap-field textarea:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-10); }
+  .ap-field.bad input, .ap-field.bad textarea { border-color: var(--alert); background: rgba(224,49,49,.03); }
+  .ap-err { color: var(--alert); font-size: 11.5px; margin-top: 5px; display: none; }
+  .ap-field.bad .ap-err { display: block; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choice { border: 1.5px solid var(--line); border-radius: 8px; padding: 11px 12px; cursor: pointer;
+            display: flex; gap: 10px; align-items: flex-start; transition: all .12s ease; background: #fff; }
+  .choice:hover { border-color: var(--line-2); background: var(--hover); }
+  .choice .dot { width: 15px; height: 15px; min-width: 15px; border-radius: 50%;
+                 border: 2px solid var(--line-2); margin-top: 1px; }
+  .choice .ct { font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+  .choice .cs { font-size: 11px; color: var(--dimmed); margin-top: 2px; }
+  .choice.on .dot { border-color: currentColor; box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 9px currentColor; }
+  .choice.on .ct { color: inherit; }
+  .choice[data-v="approve"].on,
+  .choice[data-v="approve_comments"].on { border-color: #2f9e44; color: #2f9e44; background: rgba(47,158,68,.05); }
+  .choice[data-v="changes"].on          { border-color: #f08c00; color: #f08c00; background: rgba(240,140,0,.05); }
+  .choice[data-v="reject"].on           { border-color: var(--alert); color: var(--alert); background: rgba(224,49,49,.05); }
+  .ap-actions { display: flex; gap: 10px; margin-top: 22px; align-items: center; }
+  .ap-actions .grow { flex: 1; }
+  .btn-lg { height: 40px; border-radius: 6px; font-size: 13px; font-weight: 700; font-family: inherit;
+            cursor: pointer; padding: 0 20px; border: none; }
+  .btn-send { background: var(--primary); color: #fff; }
+  .btn-send:hover { background: var(--primary-dark); }
+  .btn-cancel { background: #fff; border: 1px solid var(--line-2); color: var(--ink-2); }
+  .ap-done { text-align: center; padding: 18px 0 6px; }
+  .ap-done .tick { width: 54px; height: 54px; border-radius: 50%; background: #d3f9d8; color: #2f9e44;
+                   display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .ap-done h3 { margin: 0 0 6px; font-size: 17px; }
+  .ap-done p { color: var(--dimmed); font-size: 13px; margin: 0 0 16px; }
+  .payload { text-align: left; background: #f6f8f9; border: 1px solid var(--line); border-radius: 6px;
+             padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+             white-space: pre-wrap; word-break: break-word; color: var(--ink-2);
+             max-height: 200px; overflow-y: auto; }
+  .ap-hintline { font-size: 11px; color: var(--dimmed); margin-top: 12px; line-height: 1.5; }
+
+  .review-btn { position: fixed; top: 14px; right: 24px; z-index: 1250; background: #1a1d1f; color: #fff;
+                border: none; border-radius: 999px; font-family: inherit; font-size: 11.5px; font-weight: 700;
+                padding: 7px 15px; cursor: pointer; box-shadow: 0 4px 14px rgba(16,24,40,.22);
+                display: flex; align-items: center; gap: 7px; }
+  .review-btn:hover { background: #000; }
+  .review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #40c057; }
+
+  /* ─────────────────────── DEMO CONTROLS ─────────────────────── */
+  #demo { position: fixed; left: 12px; bottom: 12px; z-index: 1000; background: #1a1d1f; color: #fff;
+          border-radius: 8px; font-size: 11px; box-shadow: 0 10px 30px rgba(0,0,0,.3); overflow: hidden;
+          opacity: .45; transition: opacity .15s ease; }
+  #demo:hover, #demo.open { opacity: 1; }
+  #demo .dh { padding: 7px 12px; font-weight: 700; letter-spacing: .5px; cursor: pointer;
+              display: flex; align-items: center; gap: 8px; background: #26292b; }
+  #demo .dh .dot { width: 6px; height: 6px; border-radius: 50%; background: #ffd43b; }
+  #demo .db { padding: 12px; display: none; width: 230px; }
+  #demo.open .db { display: block; }
+  #demo label { display: block; font-size: 10px; color: #9aa2a7; margin-bottom: 5px;
+                text-transform: uppercase; letter-spacing: .4px; }
+  #demo select, #demo button { width: 100%; font-family: inherit; font-size: 11px; border-radius: 4px;
+                               padding: 6px 8px; border: 1px solid #3a3f43; background: #101314;
+                               color: #fff; cursor: pointer; }
+  #demo .dnote { color: #6b7378; margin-top: 10px; line-height: 1.4; font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="nav">
+    <div class="nav-brand">
+      <span class="brand-word">MERIDIAN</span>
+      <div class="brand-div"></div>
+      <svg class="platform-mark" width="46" height="22" viewBox="0 0 46 22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+        <path d="M6 2 H2 V20 H6" /><path d="M40 2 H44 V20 H40" />
+        <path d="M12 5 V17 M18 5 V17 M24 5 V17 M30 5 V17 M34 5 V17" />
+      </svg>
+      <div class="nav-collapse">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+    </div>
+    <div class="nav-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span>Search...</span><div class="kbd">⌘K</div>
+    </div>
+    <div class="nav-items">
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item active">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+        Policies
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="nav-sub">Griffin &amp; Rook — Q3 Renewals</div>
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+        Claims
+      </div>
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+        Agencies
+      </div>
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a6 6 0 0 1 11 0"/></svg>
+        Agents
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="nav-sub">Cassandra Rill</div>
+      <div class="nav-sub">Icarus Penn</div>
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4z"/></svg>
+        Tools
+      </div>
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+        Admin
+      </div>
+    </div>
+    <div class="nav-foot">
+      <div class="nav-item">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        Workspace
+      </div>
+      <div class="nav-user">
+        <div class="avatar" id="avatarInitials">AV</div>
+        <div style="font-weight:600" id="userName">Athena Vale</div>
+        <div class="badge-pill" id="userRoleBadge">UNDERWRITER</div>
+      </div>
+      <div class="version">c1.70.2.s8.20.26.w8.20.26</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">Policies</div>
+    <div class="toolbar">
+      <div class="seg">
+        <div class="on"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>List</div>
+        <div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="10" rx="1"/></svg>Kanban</div>
+        <div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="10" rx="1"/></svg>Kanban (W…</div>
+      </div>
+      <div class="view-pill">Unsaved…</div>
+      <div class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div class="field describe">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+        Describe a view...
+        <div class="go"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="field search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        Search...
+      </div>
+      <div class="spacer"></div>
+      <div class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></div>
+      <div class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+      <div class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 15h6"/></svg></div>
+      <button class="btn-primary"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>New Policy</button>
+    </div>
+
+    <div class="filter-chip" id="filterChip">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="filterChipText"></span>
+      <div class="x" id="clearFilter"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+    </div>
+
+    <div class="table-wrap" id="tableWrap">
+      <table>
+        <thead><tr>
+          <th class="cb"><i></i></th>
+          <th style="min-width:210px">Policy</th><th style="min-width:118px">Policy #</th>
+          <th style="min-width:150px">Agency</th><th style="min-width:132px">Underwriter</th>
+          <th style="min-width:64px">State</th>
+          <th style="min-width:108px">Effective <span class="sort-arrow">↓</span></th>
+          <th style="min-width:100px">Expires</th><th style="min-width:112px">TIV</th>
+          <th style="min-width:104px">Premium</th><th style="min-width:104px">LOBs</th>
+          <th style="min-width:132px">Status</th><th style="min-width:126px">GL Mod (at bind)</th>
+          <th style="min-width:140px">Habitability</th><th style="min-width:118px"></th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="emptyMsg" style="display:none">No policies match this alert.</div>
+    </div>
+  </main>
+</div>
+
+<div id="stack" class="align-r"></div>
+
+<div id="settings">
+  <div class="set-title">Alert settings</div>
+  <div class="set-note">These apply to your alert badges only.</div>
+  <div class="set-row">
+    <label class="set-label">Quote follow-up window</label>
+    <div class="num-wrap"><input type="number" id="setQuoteDays" min="1" max="90" /><span>days before effective date</span></div>
+  </div>
+  <div class="set-row">
+    <label class="set-label">Renewal window</label>
+    <div class="num-wrap"><input type="number" id="setRenewalDays" min="1" max="180" /><span>days before expiration</span></div>
+  </div>
+  <div class="set-row">
+    <label class="set-label">Policies included</label>
+    <div class="segmented" id="scopeSeg">
+      <button data-scope="mine">My policies</button><button data-scope="all">All policies</button>
+    </div>
+    <div class="lock-note" id="scopeLock">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      MGA admins only. You see policies assigned to you.
+    </div>
+  </div>
+  <div class="set-row">
+    <label class="set-label">Badge size</label>
+    <div class="segmented" id="sizeSeg">
+      <button data-size="s">Small</button><button data-size="m">Medium</button><button data-size="l">Large</button>
+    </div>
+  </div>
+  <div class="set-row">
+    <label class="set-label">Badge position</label>
+    <div class="corners" id="cornerPicker">
+      <button data-corner="tl">Top left</button><button data-corner="tr">Top right</button>
+      <button data-corner="bl">Bottom left</button><button data-corner="br">Bottom right</button>
+    </div>
+  </div>
+  <div class="set-actions">
+    <button class="btn-ghost" id="resetSettings">Reset defaults</button>
+    <button class="btn-solid" id="closeSettings">Done</button>
+  </div>
+  <div class="storage-note">Saved in this browser, on this device only. Signing in somewhere else starts from the defaults — 3 and 30 days.</div>
+</div>
+
+<div class="fab">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg>
+</div>
+
+<div class="bulk-bar" id="bulkBar">
+  <span id="bulkCount"></span>
+  <button class="b-clear" id="bulkClear">Clear</button>
+  <button class="b-close" id="bulkClose">Close file</button>
+</div>
+<div id="toast"></div>
+
+<div id="hero">
+  <div class="hero-card">
+    <div class="hero-brand">
+      <img id="heroLogo" alt="Meridian Specialty" />
+      <span class="eyebrow">Meridian Specialty · Underwriter Alerts</span>
+    </div>
+    <h1>Your team has requested alterations to the application.</h1>
+    <p class="lede">This is what we think we heard. Have a look — and with your approval,
+       we can get started.</p>
+    <div class="hero-list">
+      <div class="hero-item"><div class="hero-num">1</div>
+        <div><b>Quotes past their effective date</b><span>Business we did not win — close the file and record why.</span></div></div>
+      <div class="hero-item"><div class="hero-num">2</div>
+        <div><b>Quotes about to go effective</b><span>A few days out, so there is still time to nudge the broker.</span></div></div>
+      <div class="hero-item"><div class="hero-num">3</div>
+        <div><b>Renewals nobody has started</b><span>In force, expiring soon, and no renewal opened yet.</span></div></div>
+    </div>
+    <div class="hero-foot">
+      <button id="heroStart">Show me</button>
+      <span class="count">Starting in <b id="heroCount">7</b>…</span>
+    </div>
+  </div>
+</div>
+
+<div class="ap-overlay" id="cfOverlay">
+  <div class="ap-card" style="width:470px">
+    <h2 id="cfTitle">Close file</h2>
+    <div class="ap-sub" id="cfSub"></div>
+    <div class="ap-field" id="fReason">
+      <label class="ap-label">Why didn't we write it? <span class="req">*</span></label>
+      <div class="reasons" id="cfReasons">
+        <div class="reason" data-r="Pricing"><div class="dot"></div>Pricing</div>
+        <div class="reason" data-r="Terms"><div class="dot"></div>Terms</div>
+        <div class="reason" data-r="We dropped the ball"><div class="dot"></div>We dropped the ball</div>
+        <div class="reason" data-r="Submitting broker did not write"><div class="dot"></div>Submitting broker did not write</div>
+        <div class="reason" data-r="Other"><div class="dot"></div>Other</div>
+      </div>
+      <div id="cfOtherWrap"><input type="text" id="cfOther" placeholder="Tell us why" /></div>
+      <div class="ap-err">Pick a reason before closing.</div>
+    </div>
+    <div class="ap-actions">
+      <div class="grow"></div>
+      <button class="btn-lg btn-cancel" id="cfCancel">Cancel</button>
+      <button class="btn-lg btn-danger" id="cfConfirm">Close file</button>
+    </div>
+  </div>
+</div>
+
+<div id="spot"></div>
+<div class="narration" id="narration" aria-live="polite"></div>
+<div class="tour-bar" id="tourBar">
+  <div class="dots" id="tourDots"></div>
+  <span class="step-label" id="tourStepLabel">1 / 13</span>
+  <button class="tnav" id="tourPrev" title="Previous step">◀</button>
+  <button class="tnav" id="tourNext" title="Next step">▶</button>
+  <button id="tourToggle">Pause</button>
+  <button id="tourReplay">Replay</button>
+  <button class="go" id="tourFeedback">Give feedback</button>
+</div>
+
+<button class="review-btn" id="reviewBtn"><span class="g"></span> Looks good? Give feedback</button>
+
+<div class="ap-overlay" id="apOverlay">
+  <div class="ap-card">
+    <div id="apForm">
+      <h2>Looks good?</h2>
+      <div class="ap-sub">Underwriter Alerts — Meridian Specialty policy list. Your answer goes back to the team that built this.</div>
+
+      <div class="ap-field" id="fName">
+        <label class="ap-label" for="apName">Your name <span class="req">*</span></label>
+        <input type="text" id="apName" placeholder="Who is reviewing this?" autocomplete="name" />
+        <div class="ap-err">We need to know who reviewed this.</div>
+      </div>
+
+      <div class="ap-field">
+        <label class="ap-label" for="apOrg">Company / role <span style="color:#868e96;font-weight:500">(optional)</span></label>
+        <input type="text" id="apOrg" placeholder="e.g. Meridian Specialty — VP Underwriting" />
+      </div>
+
+      <div class="ap-field" id="fDecision">
+        <label class="ap-label">Your decision <span class="req">*</span></label>
+        <div class="choices" id="apChoices">
+          <div class="choice" data-v="approve"><div class="dot"></div><div><div class="ct">Approve</div><div class="cs">Build it as shown</div></div></div>
+          <div class="choice" data-v="approve_comments"><div class="dot"></div><div><div class="ct">Approve with comments</div><div class="cs">Go ahead, with tweaks</div></div></div>
+          <div class="choice" data-v="changes"><div class="dot"></div><div><div class="ct">Request changes</div><div class="cs">Close, but not yet</div></div></div>
+          <div class="choice" data-v="reject"><div class="dot"></div><div><div class="ct">Reject</div><div class="cs">This isn't what we want</div></div></div>
+        </div>
+        <div class="ap-err">Pick one.</div>
+      </div>
+
+      <div class="ap-field" id="fComment">
+        <label class="ap-label" id="apCommentLabel" for="apComment">Comments <span style="color:#868e96;font-weight:500">(optional)</span></label>
+        <textarea id="apComment" placeholder="Anything you would change?"></textarea>
+        <div class="ap-err">Tell us what needs to change.</div>
+      </div>
+
+      <div class="ap-actions">
+        <div class="grow"></div>
+        <button class="btn-lg btn-cancel" id="apCancel">Cancel</button>
+        <button class="btn-lg btn-send" id="apSend">Send feedback</button>
+      </div>
+    </div>
+
+    <div id="apDone" style="display:none">
+      <div class="ap-done">
+        <div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h3 id="apDoneTitle">Thank you</h3>
+        <p id="apDoneMsg"></p>
+        <div class="payload" id="apPayload"></div>
+        <div class="ap-actions">
+          <button class="btn-lg btn-cancel" id="apCopy">Copy</button>
+          <button class="btn-lg btn-cancel" id="apEmail">Email it</button>
+          <div class="grow"></div>
+          <button class="btn-lg btn-send" id="apClose">Close</button>
+        </div>
+        <div class="ap-hintline" id="apHint"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="demo">
+  <div class="dh" id="demoHead"><span class="dot"></span> DEMO CONTROLS</div>
+  <div class="db">
+    <label>Signed in as</label>
+    <select id="roleSelect">
+      <option value="uw">Athena Vale — Underwriter</option>
+      <option value="admin">Odin Marsh — MGA Admin</option>
+    </select>
+    <div style="height:10px"></div>
+    <button id="resetAll">Clear saved settings</button>
+    <div class="dnote">Today is <b>Aug 21, 2026</b> for this mockup. This panel is demo scaffolding — it would not ship.</div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Meridian Specialty — Underwriter Alerts mockup
+   Standalone. No build step, no data, fixed "today".
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── Feedback delivery ───────────────────────────────────────
+   Preferred: the shared relay on the mockups host. It holds the Slack
+   bot token server-side, so this page carries only a low-value key and
+   the channel id — and the same two lines work for every future mockup,
+   any channel. Fill both in and the form posts itself.
+
+   SLACK_WEBHOOK is the fallback for a one-off with no relay. With
+   neither set, the form falls back to copy / email, so it is never a
+   dead end.                                                          */
+const FEEDBACK_ENDPOINT = '';
+const FEEDBACK_KEY      = '';
+const FEEDBACK_SUBJECT  = 'Meridian Specialty — Underwriter Alerts mockup';
+const SLACK_WEBHOOK = '';
+const FEEDBACK_EMAIL = '';
+const SLACK_CHANNEL_ID    = '';
+const SLACK_MENTION       = '';
+const SLACK_CHANNEL_LABEL = '';
+
+const TODAY = new Date(2026, 7, 21);
+const STORE_KEY = 'meridian:uwAlerts';
+const DEFAULTS = { quoteDays: 3, renewalDays: 30, corner: 'br', scope: 'mine', size: 's' };
+const CURRENT_USER = { uw: 'Athena Vale', admin: 'Odin Marsh' };
+
+const d = (m, day, y) => new Date(y, m - 1, day);
+const POLICIES = [
+  { name:'Hogsmeade Hollow MHC',        num:'Q-1187-XX-26', agency:'Griffin & Rook',      uw:'Athena Vale', st:'TX', eff:d(8,1,2026),  exp:d(8,1,2027),  tiv:14250000, prem:186400, lobs:'PR, GL, TRIA', status:'QUOTED', glMod:'1',   hab:'Neither on record' },
+  { name:'Acme Acres RV Resort',        num:'Q-1164-XX-26', agency:'Chimera Brokerage',   uw:'Athena Vale', st:'FL', eff:d(7,28,2026), exp:d(7,28,2027), tiv:8940000,  prem:142800, lobs:'PR, GL',       status:'QUOTED', glMod:'1.4', hab:'Sublimit' },
+  { name:'Duckburg Estates',            num:'Q-1201-XX-26', agency:'Phoenix Underwriters',uw:'Athena Vale', st:'GA', eff:d(8,12,2026), exp:d(8,12,2027), tiv:6120000,  prem:98300,  lobs:'PR, TRIA',     status:'QUOTED', glMod:'—',   hab:'Neither on record' },
+  { name:'Toontown Trails MHP',         num:'Q-1223-XX-26', agency:'Hydra Risk Group',    uw:'Athena Vale', st:'TX', eff:d(8,22,2026), exp:d(8,22,2027), tiv:11380000, prem:167900, lobs:'PR, GL, TRIA', status:'QUOTED', glMod:'1',   hab:'Neither on record' },
+  { name:'Atlantis Shores Communities', num:'Q-1229-XX-26', agency:'Pegasus Risk',        uw:'Athena Vale', st:'SC', eff:d(8,24,2026), exp:d(8,24,2027), tiv:19640000, prem:241500, lobs:'PR, GL, XS',   status:'QUOTED', glMod:'2.1', hab:'Sublimit' },
+  { name:'Neverland Landing MHC',       num:'Q-1234-XX-26', agency:'Kraken Coverage',     uw:'Athena Vale', st:'AL', eff:d(8,27,2026), exp:d(8,27,2027), tiv:4870000,  prem:73200,  lobs:'PR, TRIA',     status:'QUOTED', glMod:'1',   hab:'Neither on record' },
+  { name:'Diagon Lane MHC',             num:'Q-1240-XX-26', agency:'Griffin & Rook',      uw:'Athena Vale', st:'MS', eff:d(9,15,2026), exp:d(9,15,2027), tiv:7310000,  prem:104600, lobs:'PR, GL',       status:'QUOTED', glMod:'1',   hab:'Neither on record' },
+  { name:'Coyote Mesa RV Park',         num:'S-0981-XX-25', agency:'Chimera Brokerage',   uw:'Athena Vale', st:'FL', eff:d(8,30,2025), exp:d(8,30,2026), tiv:9750000,  prem:151200, lobs:'PR, GL, TRIA', status:'BOUND',  glMod:'1',   hab:'Neither on record', renewal:false },
+  { name:'Smallville Village',          num:'S-1004-XX-25', agency:'Phoenix Underwriters',uw:'Athena Vale', st:'NC', eff:d(9,9,2025),  exp:d(9,9,2026),  tiv:13420000, prem:198700, lobs:'PR, GL',       status:'BOUND AND ISSUED', glMod:'2.64', hab:'Sublimit', renewal:false },
+  { name:'Arkham Ridge Estates',        num:'S-1019-XX-25', agency:'Griffin & Rook',      uw:'Athena Vale', st:'TN', eff:d(9,18,2025), exp:d(9,18,2026), tiv:5680000,  prem:88400,  lobs:'PR, TRIA, NS', status:'BOUND',  glMod:'1',   hab:'Neither on record', renewal:false },
+  { name:'Emerald City Communities',    num:'S-0996-XX-25', agency:'Hydra Risk Group',    uw:'Athena Vale', st:'KS', eff:d(9,2,2025),  exp:d(9,2,2026),  tiv:15717658, prem:231847, lobs:'PR, GL, TRIA', status:'BOUND',  glMod:'2.64',hab:'Neither on record', renewal:true },
+  { name:'Bedrock Springs MHC',         num:'S-0952-XX-25', agency:'Kraken Coverage',     uw:'Athena Vale', st:'AR', eff:d(10,5,2025), exp:d(10,5,2026), tiv:6940000,  prem:96100,  lobs:'PR, GL',       status:'BOUND',  glMod:'1',   hab:'Neither on record', renewal:false },
+  { name:'Pixie Hollow Park',           num:'—',            agency:'Griffin & Rook',      uw:'Athena Vale', st:'LA', eff:null,         exp:null,         tiv:0,        prem:0,      lobs:'PR, TRIA',     status:'STARTED',  glMod:'—', hab:'Neither on record' },
+  { name:'Wonderland Woods Estates',    num:'Q-1155-XX-26', agency:'Chimera Brokerage',   uw:'Athena Vale', st:'MO', eff:d(7,1,2026),  exp:d(7,1,2027),  tiv:3210000,  prem:52800,  lobs:'PR, GL',       status:'DECLINED', glMod:'—', hab:'Excluded' },
+  { name:'Agrabah Sands MHC',           num:'Q-1131-XX-26', agency:'Phoenix Underwriters',uw:'Athena Vale', st:'OK', eff:d(6,15,2026), exp:d(6,15,2027), tiv:4460000,  prem:69300,  lobs:'PR, TRIA',     status:'LOST',     glMod:'1', hab:'Neither on record' },
+  { name:'Themyscira Bay RV Resort',    num:'Q-1178-XX-26', agency:'Minotaur Agency',     uw:'Perseus Kade', st:'FL', eff:d(8,5,2026),  exp:d(8,5,2027),  tiv:10230000, prem:159400, lobs:'PR, GL, TRIA', status:'QUOTED', glMod:'1',   hab:'Sublimit' },
+  { name:'Metropolis Park Communities', num:'Q-1195-XX-26', agency:'Griffin & Rook',      uw:'Orion Thorne', st:'AL', eff:d(8,18,2026), exp:d(8,18,2027), tiv:7860000,  prem:118900, lobs:'PR, GL',       status:'QUOTED', glMod:'1.2', hab:'Neither on record' },
+  { name:'Hobbiton Village',            num:'Q-1231-XX-26', agency:'Chimera Brokerage',   uw:'Freya Lund',   st:'KS', eff:d(8,23,2026), exp:d(8,23,2027), tiv:5240000,  prem:81700,  lobs:'PR, TRIA',     status:'QUOTED', glMod:'1',   hab:'Neither on record' },
+  { name:'Asgard Bluff MHC',            num:'S-1011-XX-25', agency:'Phoenix Underwriters',uw:'Perseus Kade', st:'GA', eff:d(9,1,2025),  exp:d(9,1,2026),  tiv:12080000, prem:174300, lobs:'PR, GL, TRIA', status:'BOUND', glMod:'1.8', hab:'Sublimit', renewal:false },
+  { name:'Gotham Heights Park',         num:'S-1026-XX-25', agency:'Hydra Risk Group',    uw:'Freya Lund',   st:'IN', eff:d(9,12,2025), exp:d(9,12,2026), tiv:8410000,  prem:127600, lobs:'PR, GL',       status:'BOUND AND ISSUED', glMod:'1', hab:'Neither on record', renewal:false },
+  { name:'Wayne Meadows MHC',           num:'S-1033-XX-25', agency:'Griffin & Rook',      uw:'Perseus Kade', st:'OH', eff:d(9,20,2025), exp:d(9,20,2026), tiv:9930000,  prem:143800, lobs:'PR, GL, TRIA', status:'BOUND', glMod:'1',   hab:'Neither on record', renewal:true },
+  { name:'Olympus Crest Estates',       num:'S-1041-XX-25', agency:'Kraken Coverage',     uw:'Orion Thorne', st:'CO', eff:d(12,1,2025), exp:d(12,1,2026), tiv:11470000, prem:168200, lobs:'PR, GL, XS',   status:'BOUND', glMod:'1',   hab:'Neither on record', renewal:false },
+  { name:'Avalon Lake RV',              num:'—',            agency:'Pegasus Risk',        uw:'Odin Marsh',   st:'MI', eff:null,         exp:null,         tiv:0,        prem:0,      lobs:'TRIA',         status:'STARTED', glMod:'—', hab:'Neither on record' },
+];
+
+const ALERTS = [
+  { id:'dead', title:'Past effective date', hitCol:'eff',
+    chip:(n)=>`<b>${n}</b> quoted ${n===1?'policy has':'policies have'} passed the effective date and should be closed out.`,
+    test:(p)=> p.status==='QUOTED' && p.eff && p.eff < TODAY },
+  { id:'soon', title:'Going effective soon', hitCol:'eff',
+    chip:(n,s)=>`<b>${n}</b> quoted ${n===1?'policy goes':'policies go'} effective within ${s.quoteDays} day${s.quoteDays===1?'':'s'}. Time to nudge the broker.`,
+    test:(p,s)=> p.status==='QUOTED' && p.eff && p.eff>=TODAY && daysBetween(TODAY,p.eff)<=s.quoteDays },
+  { id:'renewal', title:'Renewal not started', hitCol:'exp',
+    chip:(n,s)=>`<b>${n}</b> in-force ${n===1?'policy expires':'policies expire'} within ${s.renewalDays} days with no renewal started.`,
+    test:(p,s)=> (p.status==='BOUND'||p.status==='BOUND AND ISSUED') && p.exp && p.exp>=TODAY
+                 && daysBetween(TODAY,p.exp)<=s.renewalDays && !p.renewal },
+];
+
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function fmtDate(dt){ if(!dt) return '—'; const p=n=>String(n).padStart(2,'0');
+  return `${p(dt.getMonth()+1)}/${p(dt.getDate())}/${dt.getFullYear()}`; }
+function fmtMoney(n){ return '$'+n.toLocaleString('en-US'); }
+function pillClass(s){ return {'QUOTED':'quoted','BOUND':'bound','BOUND AND ISSUED':'issued',
+  'DECLINED':'declined','LOST':'lost','STARTED':'started'}[s]||'started'; }
+const $ = (id) => document.getElementById(id);
+/* Mac says option, Windows and Linux say alt — the page speaks whichever one you are on. */
+const IS_MAC = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
+const MODKEY = IS_MAC ? 'option' : 'alt';
+
+let role='uw', settings={...DEFAULTS}, activeAlert=null;
+let selected = new Set();
+
+function loadSettings(){
+  try { const raw=localStorage.getItem(STORE_KEY);
+        settings = raw ? {...DEFAULTS, ...JSON.parse(raw)} : {...DEFAULTS}; }
+  catch(e){ settings={...DEFAULTS}; }
+  if (role!=='admin') settings.scope='mine';
+}
+function saveSettings(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(settings)); }catch(e){} }
+
+function visiblePolicies(){
+  const seeAll = role==='admin' && settings.scope==='all';
+  return seeAll ? POLICIES : POLICIES.filter(p=>p.uw===CURRENT_USER[role]);
+}
+function matchesFor(a){ return visiblePolicies().filter(p=>a.test(p,settings)); }
+
+function renderTable(){
+  const alert = activeAlert ? ALERTS.find(a=>a.id===activeAlert) : null;
+  const list = alert ? matchesFor(alert) : visiblePolicies();
+  $('rows').innerHTML = list.map(p=>{
+    const hit = c => alert && alert.hitCol===c ? ' class="hit"' : '';
+    const canClose = !!(alert && alert.id==='dead');
+    const sel = selected.has(p.name);
+    return `<tr class="${alert?'flagged':''}" data-name="${p.name}">
+      <td class="cb"><i class="${sel?'on':''}"></i></td><td>${p.name}</td>
+      <td class="${p.num==='—'?'muted':''}">${p.num}</td><td>${p.agency}</td><td>${p.uw}</td><td>${p.st}</td>
+      <td${hit('eff')}>${fmtDate(p.eff)}</td><td${hit('exp')}>${fmtDate(p.exp)}</td>
+      <td>${fmtMoney(p.tiv)}</td><td>${fmtMoney(p.prem)}</td><td>${p.lobs}</td>
+      <td><span class="pill ${pillClass(p.status)}">${p.status}</span></td>
+      <td class="${p.glMod==='—'?'muted':''}">${p.glMod}</td><td>${p.hab}</td>
+      <td class="actions">${canClose ? `<button class="row-close">Close file</button>` : ''}</td></tr>`;
+  }).join('');
+  updateBulkBar();
+  $('emptyMsg').style.display = list.length ? 'none' : 'block';
+  const chip = $('filterChip');
+  if (alert){ $('filterChipText').innerHTML = alert.chip(list.length, settings); chip.classList.add('on'); }
+  else chip.classList.remove('on');
+}
+
+function renderStack(){
+  const stack = $('stack');
+  const counts = ALERTS.map(a=>({a, n:matchesFor(a).length})).filter(x=>x.n>0);
+  positionStack();
+  if(!counts.length){
+    stack.classList.add('empty-state');
+    stack.innerHTML = `<div class="stack-head"><span class="ring"></span> All clear</div>
+      <div class="stack-hint"><b>${MODKEY}-click</b> settings · <b>double-click</b> move</div>`;
+    const h=stack.querySelector('.stack-head');
+    h.addEventListener('click', onBadgeClick(null)); h.addEventListener('dblclick', onBadgeDblClick);
+    return;
+  }
+  stack.classList.remove('empty-state');
+  stack.innerHTML = `
+    <div class="stack-head"><span class="ring"></span> Handle now?</div>
+    ${counts.map(({a,n})=>`<div class="alert-badge ${activeAlert===a.id?'selected':''}" data-id="${a.id}">
+        <div class="alert-count">${n}</div><div class="alert-title">${a.title}</div></div>`).join('')}
+    <div class="stack-hint"><b>click</b> review · <b>${MODKEY}-click</b> settings · <b>double-click</b> move</div>`;
+  stack.querySelectorAll('.alert-badge').forEach(el=>{
+    el.addEventListener('click', onBadgeClick(el.dataset.id));
+    el.addEventListener('dblclick', onBadgeDblClick);
+  });
+  const h=stack.querySelector('.stack-head');
+  h.addEventListener('click', onBadgeClick(null)); h.addEventListener('dblclick', onBadgeDblClick);
+}
+
+let clickTimer=null;
+function onBadgeClick(id){
+  return (ev)=>{
+    if(ev.altKey){ clearTimeout(clickTimer); openSettings(); return; }
+    if(id===null) return;
+    clearTimeout(clickTimer);
+    clickTimer=setTimeout(()=>{
+      activeAlert = (activeAlert===id) ? null : id;
+      selected.clear();
+      renderTable(); renderStack(); $('tableWrap').scrollTop=0;
+    },220);
+  };
+}
+function onBadgeDblClick(ev){
+  ev.preventDefault(); clearTimeout(clickTimer);
+  const order=['br','bl','tl','tr'];
+  settings.corner = order[(order.indexOf(settings.corner)+1)%4];
+  saveSettings(); positionStack(); syncSettingsPanel();
+}
+
+function positionStack(){
+  const s=$('stack'), p=$('settings');
+  s.dataset.size = settings.size || 's';
+  const M=20, TOP_M=76, FAB_CLEAR=84;
+  ['top','right','bottom','left'].forEach(k=>{ s.style[k]='auto'; p.style[k]='auto'; });
+  const c=settings.corner;
+  const onLeft = (c==='tl'||c==='bl');
+  s.classList.toggle('align-l', onLeft);
+  s.classList.toggle('align-r', !onLeft);
+  // Left corners sit against the left edge of the window, over the nav.
+  if(onLeft) s.style.left = M+'px'; else s.style.right = M+'px';
+  if(c==='tl'||c==='tr') s.style.top = TOP_M+'px';
+  else s.style.bottom = (c==='br' ? FAB_CLEAR : M)+'px';
+
+  const r=s.getBoundingClientRect();
+  if(onLeft) p.style.left = (r.right+12)+'px'; else p.style.right=(window.innerWidth-r.left+12)+'px';
+  if(c==='tl'||c==='tr') p.style.top=TOP_M+'px'; else p.style.bottom=M+'px';
+}
+
+/* ─── Settings ─── */
+function openSettings(){ syncSettingsPanel(); positionStack(); $('settings').classList.add('on'); }
+function closeSettings(){ $('settings').classList.remove('on'); }
+function syncSettingsPanel(){
+  $('setQuoteDays').value=settings.quoteDays; $('setRenewalDays').value=settings.renewalDays;
+  const seg=$('scopeSeg'), isAdmin=role==='admin';
+  seg.classList.toggle('locked', !isAdmin);
+  $('scopeLock').style.display = isAdmin ? 'none' : 'flex';
+  seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.scope===settings.scope));
+  $('cornerPicker').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.corner===settings.corner));
+  $('sizeSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.size===(settings.size||'s')));
+}
+function bumpSetting(key,val,min,max){
+  const n=parseInt(val,10); if(Number.isNaN(n)) return;
+  settings[key]=Math.min(max,Math.max(min,n)); saveSettings(); renderStack(); if(activeAlert) renderTable();
+}
+$('setQuoteDays').addEventListener('input',e=>bumpSetting('quoteDays',e.target.value,1,90));
+$('setRenewalDays').addEventListener('input',e=>bumpSetting('renewalDays',e.target.value,1,180));
+$('scopeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||role!=='admin') return;
+  settings.scope=b.dataset.scope; saveSettings(); syncSettingsPanel(); renderStack(); renderTable();
+});
+$('sizeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  settings.size=b.dataset.size; saveSettings(); syncSettingsPanel(); positionStack();
+});
+$('cornerPicker').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  settings.corner=b.dataset.corner; saveSettings(); syncSettingsPanel(); positionStack();
+});
+$('resetSettings').addEventListener('click',()=>{
+  settings={...DEFAULTS}; if(role!=='admin') settings.scope='mine';
+  saveSettings(); syncSettingsPanel(); positionStack(); renderStack(); renderTable();
+});
+$('closeSettings').addEventListener('click',closeSettings);
+document.addEventListener('mousedown',e=>{
+  const p=$('settings'); if(!p.classList.contains('on')) return;
+  if(p.contains(e.target)||$('stack').contains(e.target)) return;
+  closeSettings();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeSettings(); closeCloseFile(); return; }
+  if($('apOverlay').classList.contains('on') || $('cfOverlay').classList.contains('on')) return;
+  if(e.key==='ArrowRight' && currentStep<TOUR.length-1) playFrom(currentStep+1,false);
+  if(e.key==='ArrowLeft'  && currentStep>0)             playFrom(currentStep-1,false);
+});
+$('clearFilter').addEventListener('click',()=>{ activeAlert=null; selected.clear(); renderTable(); renderStack(); });
+
+/* ═══════════════════ CLOSE FILE (condition one) ═══════════════════ */
+/* A quote whose effective date has passed is business we lost. Closing it out
+   records WHY, so the reasons can be counted later. */
+const CLOSE_REASONS = ['Pricing','Terms','We dropped the ball','Submitting broker did not write','Other'];
+let cfTargets = [], cfReason = null;
+
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'), 2600);
+}
+function updateBulkBar(){
+  const bar=$('bulkBar');
+  const on = activeAlert==='dead' && selected.size>0;
+  bar.classList.toggle('on', on);
+  if(on) $('bulkCount').textContent = `${selected.size} selected`;
+}
+function byName(n){ return POLICIES.find(p=>p.name===n); }
+
+function openCloseFile(names){
+  cfTargets = names.filter(Boolean);
+  if(!cfTargets.length) return;
+  cfReason=null;
+  $('cfReasons').querySelectorAll('.reason').forEach(r=>r.classList.remove('on'));
+  $('cfOtherWrap').classList.remove('on'); $('cfOther').value='';
+  $('fReason').classList.remove('bad');
+  $('cfTitle').textContent = cfTargets.length===1 ? 'Close file' : `Close ${cfTargets.length} files`;
+  $('cfSub').textContent = cfTargets.length===1
+    ? `${cfTargets[0]} — quoted, and the effective date has passed.`
+    : `${cfTargets.length} quoted policies whose effective date has passed.`;
+  $('cfOverlay').classList.add('on');
+}
+function closeCloseFile(){ $('cfOverlay').classList.remove('on'); }
+
+$('cfReasons').addEventListener('click', e=>{
+  const r=e.target.closest('.reason'); if(!r) return;
+  cfReason=r.dataset.r;
+  $('cfReasons').querySelectorAll('.reason').forEach(x=>x.classList.toggle('on', x===r));
+  $('cfOtherWrap').classList.toggle('on', cfReason==='Other');
+  $('fReason').classList.remove('bad');
+  if(cfReason==='Other') setTimeout(()=>$('cfOther').focus(), 60);
+});
+$('cfCancel').addEventListener('click', closeCloseFile);
+$('cfConfirm').addEventListener('click', ()=>{
+  const other=$('cfOther').value.trim();
+  if(!cfReason || (cfReason==='Other' && !other)){
+    $('fReason').classList.add('bad');
+    if(cfReason==='Other') $('cfOther').focus();
+    return;
+  }
+  const reason = cfReason==='Other' ? `Other — ${other}` : cfReason;
+  cfTargets.forEach(n=>{ const p=byName(n); if(p){ p.status='LOST'; p.closedReason=reason; } });
+  const n=cfTargets.length;
+  selected.clear(); closeCloseFile(); renderTable(); renderStack();
+  toast(`${n} file${n===1?'':'s'} closed — ${reason}`);
+});
+
+/* Row interactions, delegated so they survive every re-render. */
+let rowClickTimer=null;
+$('rows').addEventListener('click', e=>{
+  const tr=e.target.closest('tr'); if(!tr) return;
+  const name=tr.dataset.name;
+  if(e.target.closest('.row-close')){ clearTimeout(rowClickTimer); openCloseFile([name]); return; }
+  if(e.target.closest('td.cb')){
+    clearTimeout(rowClickTimer);
+    if(selected.has(name)) selected.delete(name); else selected.add(name);
+    renderTable();
+    return;
+  }
+  clearTimeout(rowClickTimer);
+  rowClickTimer=setTimeout(()=>toast(`Opening ${name}…`), 230);
+});
+$('rows').addEventListener('dblclick', e=>{
+  const tr=e.target.closest('tr'); if(!tr) return;
+  clearTimeout(rowClickTimer);
+  if(activeAlert!=='dead') return;      // Close file is a condition-one action
+  openCloseFile([tr.dataset.name]);
+});
+$('bulkClose').addEventListener('click', ()=>openCloseFile([...selected]));
+$('bulkClear').addEventListener('click', ()=>{ selected.clear(); renderTable(); });
+
+/* ═══════════════════ GUIDED TOUR ═══════════════════ */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+let tourToken=0, tourAuto=false, tourPaused=false, currentStep=0;
+
+function narrate(text,n,total){
+  const pill=$('narration');
+  pill.innerHTML = `<span class="step-n">${n}/${total}</span>${text}`;
+  pill.classList.add('in');
+}
+function hideNarration(){ $('narration').classList.remove('in'); }
+/* Dim everything except the region being talked about. The #spot element has no
+   background of its own — a huge box-shadow spread darkens the rest of the screen,
+   so whatever sits under the hole stays fully lit and legible. */
+let spotTargets = null;
+function spotOn(selectors, pad){
+  spotTargets = { selectors, pad: pad==null ? 12 : pad };
+  applySpot();
+}
+function computeRect(selectors, pad){
+  const rects = selectors
+    .flatMap(sel => [...document.querySelectorAll(sel)])
+    .map(n => n.getBoundingClientRect())
+    .filter(r => r.width > 0 && r.height > 0);
+  if(!rects.length) return null;
+  const top    = Math.min(...rects.map(r=>r.top))    - pad;
+  const left   = Math.min(...rects.map(r=>r.left))   - pad;
+  const bottom = Math.max(...rects.map(r=>r.bottom)) + pad;
+  const right  = Math.max(...rects.map(r=>r.right))  + pad;
+  return { top: Math.max(0, top), left: Math.max(0, left),
+           width:  Math.min(window.innerWidth,  right - left),
+           height: Math.min(window.innerHeight, bottom - top) };
+}
+function applySpot(){
+  const el = $('spot');
+  if(!spotTargets){ el.classList.remove('on'); return; }
+  const r = computeRect(spotTargets.selectors, spotTargets.pad);
+  if(!r){ el.classList.remove('on'); return; }
+  el.style.top=r.top+'px'; el.style.left=r.left+'px';
+  el.style.width=r.width+'px'; el.style.height=r.height+'px';
+  el.classList.add('on');
+}
+
+/* The highlight is born at the narration pill and grows out to the thing being
+   described, so the black caption and the lit region read as one gesture. */
+async function spotReveal(selectors, pad){
+  pad = (pad==null) ? 12 : pad;
+  spotTargets = { selectors, pad };
+  const el = $('spot'), pill = $('narration');
+  const target = computeRect(selectors, pad);
+  if(!target){ spotOff(); return; }
+
+  const p = pill.getBoundingClientRect();
+  el.classList.add('no-anim');                 // snap to the caption, unanimated
+  el.style.borderRadius = '999px';
+  el.style.top = p.top+'px';   el.style.left = p.left+'px';
+  el.style.width = p.width+'px'; el.style.height = p.height+'px';
+  void el.offsetWidth;                         // flush, so the next change animates
+  el.classList.remove('no-anim');
+
+  el.classList.add('on');                      // dim fades in around the caption
+  await sleep(280);
+  el.style.borderRadius = '10px';              // then zoom out to the target
+  el.style.top = target.top+'px';   el.style.left = target.left+'px';
+  el.style.width = target.width+'px'; el.style.height = target.height+'px';
+}
+function spotOff(){ spotTargets = null; $('spot').classList.remove('on'); }
+
+function spotlight(id){
+  document.querySelectorAll('.alert-badge').forEach(b=>b.classList.toggle('spotlight', b.dataset.id===id));
+}
+function clearSpotlight(){ document.querySelectorAll('.alert-badge').forEach(b=>b.classList.remove('spotlight')); }
+
+async function hold(ms, token){
+  let waited=0;
+  while(waited<ms){
+    if(token!==undefined && token!==tourToken) throw new Error('superseded');
+    while(tourPaused && (token===undefined || token===tourToken)) await sleep(110);
+    await sleep(80); waited+=80;
+  }
+  if(token!==undefined && token!==tourToken) throw new Error('superseded');
+}
+
+const TOUR = [
+  { text:'Meridian Specialty watches your book in the background. Three things get checked, continuously.',
+    run: async()=>{ activeAlert=null; renderTable(); renderStack(); $('stack').classList.add('show-hint');
+      clearSpotlight(); await spotReveal(['#stack'], 16); } },
+
+  { text:'The badges sit quietly in a corner — small, out of the way, until something needs you.',
+    run: async()=>{ clearSpotlight(); await spotReveal(['#stack'], 16); } },
+
+  { text:'Check one. Quotes whose effective date has already passed. You did not win them, and they need closing out.',
+    run: async()=>{ spotlight('dead'); await spotReveal(['.alert-badge[data-id="dead"]'], 10); } },
+
+  { text:'Click a badge and the policy list filters to exactly those policies, with the date that tripped it flagged.',
+    run: async()=>{ activeAlert='dead'; renderTable(); renderStack(); spotlight('dead');
+      await sleep(120); await spotReveal(['#filterChip','#rows'], 8); } },
+
+  { text:'A quote past its effective date is business we lost. Double-click the row — or hit Close file — to close it out.',
+    run: async()=>{ activeAlert='dead'; selected.clear(); renderTable(); renderStack(); clearSpotlight();
+      await sleep(150); await spotReveal(['#rows'], 8); } },
+
+  { text:'Closing asks why we did not write it: pricing, terms, we dropped the ball, the submitting broker did not write, or something else.',
+    run: async()=>{ spotOff();
+      const first = matchesFor(ALERTS[0])[0];
+      if(first) openCloseFile([first.name]);
+      await sleep(700);
+      const seq=['Pricing','Terms','We dropped the ball','Submitting broker did not write','Other'];
+      for(const r of seq){
+        const el=[...document.querySelectorAll('#cfReasons .reason')].find(x=>x.dataset.r===r);
+        if(el) el.click();
+        await sleep(420);
+      }
+      $('cfOtherWrap').classList.remove('on'); } },
+
+  { text:'Check two. Quotes about to go effective — three days out by default. Time to nudge the broker.',
+    run: async()=>{ closeCloseFile(); activeAlert='soon'; renderTable(); renderStack(); spotlight('soon');
+      await sleep(120); await spotReveal(['.alert-badge[data-id="soon"]','#rows'], 10); } },
+
+  { text:'Check three. In-force policies expiring soon where no renewal has been started yet.',
+    run: async()=>{ activeAlert='renewal'; renderTable(); renderStack(); spotlight('renewal');
+      await sleep(120); await spotReveal(['.alert-badge[data-id="renewal"]','#rows'], 10); } },
+
+  { text:`Hold ${MODKEY} and click any badge to open the settings.`,
+    run: async()=>{ activeAlert=null; renderTable(); renderStack(); clearSpotlight(); openSettings();
+      await sleep(140); await spotReveal(['#settings'], 14); } },
+
+  { text:'Both windows are yours to set. Three days for quotes, thirty for renewals — change them and the counts move.',
+    run: async()=>{ openSettings(); await sleep(80); await spotReveal(['#setQuoteDays','#setRenewalDays','#stack'], 12);
+      for(const v of [5,8,12,8,3]){ settings.quoteDays=v; $('setQuoteDays').value=v; renderStack(); applySpot(); await sleep(340); }
+      saveSettings(); } },
+
+  { text:'Badges come in three sizes and park in any of the four corners — whatever stays out of your way.',
+    run: async()=>{ openSettings(); await sleep(80); await spotReveal(['#sizeSeg','#cornerPicker','#stack'], 12);
+      for(const z of ['m','l','s']){ settings.size=z; positionStack(); syncSettingsPanel(); applySpot(); await sleep(560); }
+      saveSettings(); } },
+
+  { text:'An MGA admin can widen it to everyone’s book. A regular underwriter only ever sees their own, and that control is locked.',
+    run: async()=>{ openSettings(); await sleep(80); await spotReveal(['#scopeSeg','#scopeLock'], 12); } },
+
+  { text:'Double-click a badge to park it in another corner. It stays where you left it, in this browser.',
+    run: async()=>{ closeSettings(); await spotReveal(['#stack'], 16);
+      for(const c of ['bl','tl','tr','br']){ settings.corner=c; positionStack(); await sleep(330); applySpot(); await sleep(330); }
+      saveSettings(); syncSettingsPanel(); } },
+
+  { text:'That is the whole feature. Does this look right to you?',
+    run: async()=>{ clearSpotlight(); spotOff(); $('stack').classList.remove('show-hint'); } },
+];
+
+function renderDots(active){
+  $('tourDots').innerHTML = TOUR.map((_,i)=>
+    `<div class="dot ${i===active?'on':(i<active?'done':'')}" data-step="${i}" title="Step ${i+1}"></div>`
+  ).join('');
+}
+function updateTourUI(){
+  renderDots(currentStep);
+  $('tourStepLabel').textContent = `${currentStep+1} / ${TOUR.length}`;
+  $('tourPrev').disabled = currentStep <= 0;
+  $('tourNext').disabled = currentStep >= TOUR.length-1;
+  $('tourToggle').textContent = (tourAuto && !tourPaused) ? 'Pause' : 'Play';
+}
+
+/* One driver. Every jump bumps the token, so whatever step is mid-flight
+   gives up quietly instead of fighting the new one. */
+async function playFrom(i, auto){
+  const token = ++tourToken;
+  tourAuto = auto; tourPaused = false;
+  closeCloseFile(); closeSettings();
+  try{
+    for(let k=i; k<TOUR.length; k++){
+      if(token!==tourToken) return;
+      currentStep = k; updateTourUI();
+      spotOff();
+      narrate(TOUR[k].text, k+1, TOUR.length);
+      await hold(1000, token);
+      await TOUR[k].run();
+      if(token!==tourToken) return;
+      if(!auto){ tourAuto=false; updateTourUI(); return; }   // single step: stop here
+      await hold(TOUR[k].text.length > 95 ? 3400 : 2600, token);
+    }
+    if(token!==tourToken) return;
+    hideNarration(); clearSpotlight(); spotOff();
+    tourAuto=false; updateTourUI();
+    openApproval();
+  }catch(e){ /* superseded by a newer jump */ }
+}
+const runTour = () => playFrom(0, true);
+function stopTour(){ ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
+
+$('tourPrev').addEventListener('click', ()=>{ if(currentStep>0) playFrom(currentStep-1, false); });
+$('tourNext').addEventListener('click', ()=>{ if(currentStep<TOUR.length-1) playFrom(currentStep+1, false); });
+$('tourDots').addEventListener('click', e=>{
+  const d=e.target.closest('.dot'); if(!d) return;
+  playFrom(parseInt(d.dataset.step,10), false);
+});
+$('tourToggle').addEventListener('click',()=>{
+  if(tourAuto){ tourPaused = !tourPaused; updateTourUI(); }
+  else { playFrom(Math.min(currentStep+1, TOUR.length-1), true); }   // resume auto from here
+});
+$('tourReplay').addEventListener('click',()=>{
+  closeSettings(); closeCloseFile(); activeAlert=null; selected.clear();
+  settings.corner='br'; settings.size = settings.size || 's';
+  renderTable(); renderStack(); playFrom(0, true);
+});
+$('tourFeedback').addEventListener('click',()=>{ stopTour(); hideNarration(); spotOff(); clearSpotlight(); openApproval(); });
+$('reviewBtn').addEventListener('click',()=>{ stopTour(); hideNarration(); spotOff(); clearSpotlight(); openApproval(); });
+
+/* ═══════════════════ APPROVAL / FEEDBACK ═══════════════════ */
+let decision=null;
+function openApproval(){ $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
+function closeApproval(){ $('apOverlay').classList.remove('on'); }
+
+$('apChoices').addEventListener('click', e=>{
+  const c=e.target.closest('.choice'); if(!c) return;
+  decision=c.dataset.v;
+  $('apChoices').querySelectorAll('.choice').forEach(x=>x.classList.toggle('on', x===c));
+  $('fDecision').classList.remove('bad');
+  const needs = decision!=='approve';
+  $('apCommentLabel').innerHTML = needs
+    ? 'Comments <span class="req">*</span>'
+    : 'Comments <span style="color:#868e96;font-weight:500">(optional)</span>';
+  $('apComment').placeholder = decision==='reject'
+    ? 'What is wrong with this, and what would you want instead?'
+    : 'Anything you would change?';
+});
+$('apCancel').addEventListener('click', closeApproval);
+$('apClose').addEventListener('click', closeApproval);
+
+const DECISION_LABEL = { approve:'APPROVED', approve_comments:'APPROVED WITH COMMENTS',
+  changes:'CHANGES REQUESTED', reject:'REJECTED' };
+const DECISION_EMOJI = { approve:'✅', approve_comments:'✅', changes:'🟠', reject:'❌' };
+
+function buildPayloadText(v){
+  return [
+    `${SLACK_MENTION} — new review on the Underwriter Alerts mockup.`,
+    ``,
+    `${DECISION_EMOJI[v.decision]}  *Meridian Specialty — Underwriter Alerts mockup*`,
+    `*${DECISION_LABEL[v.decision]}*`,
+    ``,
+    `*Reviewer:* ${v.name}${v.org ? ` — ${v.org}` : ''}`,
+    `*When:* ${v.when}`,
+    v.comment ? `*Comments:*\n> ${v.comment.replace(/\n/g,'\n> ')}` : `*Comments:* _none_`,
+  ].join('\n');
+}
+
+$('apSend').addEventListener('click', async ()=>{
+  const name=$('apName').value.trim(), org=$('apOrg').value.trim(), comment=$('apComment').value.trim();
+  let ok=true;
+  $('fName').classList.toggle('bad', !name); if(!name) ok=false;
+  $('fDecision').classList.toggle('bad', !decision); if(!decision) ok=false;
+  const commentRequired = decision && decision!=='approve';
+  $('fComment').classList.toggle('bad', !!(commentRequired && !comment));
+  if(commentRequired && !comment) ok=false;
+  if(!ok){ (!name ? $('apName') : $('apComment')).focus(); return; }
+
+  const payload = { name, org, comment, decision,
+    when: new Date().toLocaleString('en-US',{ dateStyle:'medium', timeStyle:'short' }) };
+  const text = buildPayloadText(payload);
+
+  const btn=$('apSend'); btn.disabled=true; btn.textContent='Sending…';
+  let delivered=false;
+  if(FEEDBACK_ENDPOINT && FEEDBACK_KEY){
+    try{
+      const res = await fetch(FEEDBACK_ENDPOINT, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          key: FEEDBACK_KEY, channel: SLACK_CHANNEL_ID, mention: SLACK_MENTION,
+          subject: FEEDBACK_SUBJECT, decision, reviewer: name, org, comment,
+        }),
+      });
+      delivered = res.ok;
+    }catch(e){ delivered=false; }
+  } else if(SLACK_WEBHOOK){
+    try{
+      // text/plain dodges the CORS preflight that Slack webhooks reject
+      await fetch(SLACK_WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ text }) });
+      delivered=true;
+    }catch(e){ delivered=false; }
+  }
+  btn.disabled=false; btn.textContent='Send feedback';
+
+  $('apForm').style.display='none'; $('apDone').style.display='block';
+  $('apDoneTitle').textContent = delivered ? 'Sent — thank you' : 'Recorded — one more step';
+  $('apDoneMsg').textContent = delivered
+    ? `Your review was posted to ${SLACK_CHANNEL_LABEL} and the team has been notified.`
+    : 'Copy this and send it back, or use Email it for a pre-filled message.';
+  $('apPayload').textContent = text.replace(/\*/g,'').replace(/<@[A-Z0-9]+>/g,'@Jay');
+  $('apHint').textContent = delivered ? '' : `Posts to ${SLACK_CHANNEL_LABEL} once the feedback relay is configured.`;
+  window.__lastReview = { payload, text };
+});
+
+$('apCopy').addEventListener('click', ()=>{
+  const t=$('apPayload').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t).then(()=>{
+      $('apCopy').textContent='Copied'; setTimeout(()=>$('apCopy').textContent='Copy',1600);
+    }).catch(()=>{});
+  }
+});
+$('apEmail').addEventListener('click', ()=>{
+  const r=window.__lastReview; if(!r) return;
+  const subj=`Meridian Specialty Underwriter Alerts — ${DECISION_LABEL[r.payload.decision]} — ${r.payload.name}`;
+  window.location.href =
+    `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent($('apPayload').textContent)}`;
+});
+
+/* ═══════════════════ DEMO CONTROLS ═══════════════════ */
+$('demoHead').addEventListener('click',()=>$('demo').classList.toggle('open'));
+$('roleSelect').addEventListener('change',e=>{
+  role=e.target.value; const isAdmin=role==='admin';
+  $('userName').textContent = isAdmin?'Odin Marsh':'Athena Vale';
+  $('avatarInitials').textContent = isAdmin?'OM':'AV';
+  $('userRoleBadge').textContent = isAdmin?'MGA ADMIN':'UNDERWRITER';
+  settings.scope = isAdmin ? 'all' : 'mine';
+  saveSettings(); activeAlert=null; syncSettingsPanel(); renderStack(); renderTable();
+});
+$('resetAll').addEventListener('click',()=>{
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  loadSettings(); syncSettingsPanel(); positionStack(); renderStack(); renderTable();
+});
+window.addEventListener('resize', ()=>{ positionStack(); applySpot(); });
+
+/* ═══════════════════ BOOT ═══════════════════ */
+/* Intro card: what we think we heard, before anything moves. */
+async function showHero(){
+  const h=$('hero');
+  /* no logo in the public example */
+  await sleep(250);
+  h.classList.add('in');
+  let n=7; $('heroCount').textContent=n;
+  const tick=setInterval(()=>{ n--; $('heroCount').textContent=Math.max(0,n); }, 1000);
+  await new Promise(res=>{
+    let done=false;
+    const go=()=>{ if(done) return; done=true; clearInterval(tick); res(); };
+    $('heroStart').addEventListener('click', go, { once:true });
+    h.addEventListener('click', e=>{ if(e.target===h) go(); });
+    setTimeout(go, 7400);
+  });
+  h.classList.remove('in'); h.classList.add('out');
+  await sleep(560);
+  h.style.display='none';
+}
+
+loadSettings(); syncSettingsPanel(); renderTable(); renderStack(); updateTourUI();
+showHero().then(runTour);
+</script>
+</body>
+</html>

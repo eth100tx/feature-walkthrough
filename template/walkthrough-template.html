@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>PRODUCT — FEATURE</title>
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════
+  FEATURE WALKTHROUGH TEMPLATE
+  ══════════════════════════════════════════════════════════════════════════
+
+  One file. No build step, no dependencies, no network calls. Open it in a
+  browser and it plays.
+
+  There are five places you edit, and they are all marked YOURS. Everything
+  marked ENGINE is proven and should be left alone.
+
+    1. THEME TOKENS   — take these from the real codebase, do not invent them
+    2. MOCKUP CSS     — the fake screen's styles
+    3. MOCKUP MARKUP  — the fake screen itself
+    4. MOCKUP STATE   — fake data and render functions
+    5. TOUR           — the narration script, one entry per step
+
+  Open it as-is and you get a working placeholder walkthrough, so you can
+  confirm the engine runs before you put your own screen into it.
+  ══════════════════════════════════════════════════════════════════════════
+-->
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1. THEME TOKENS — YOURS
+   ──────────────────────────────────────────────────────────────────────────
+   Read these off the target codebase. Its theme file, its CSS variables, its
+   Tailwind config, its design tokens — wherever the real values live. Do not
+   guess a palette. The whole point is that this looks like their product.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --primary:      #2f5fa0;
+  --primary-10:   rgba(47,95,160,.10);
+  --primary-dark: #274f87;
+  --ink:          #000000;
+  --ink-2:        #495057;
+  --dimmed:       #868e96;
+  --line:         #dee2e6;
+  --line-2:       #ced4da;
+  --bg:           #ffffff;
+  --hover:        #f8f9fa;
+  --alert:        #e03131;
+  --radius:       4px;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  height: 100%; overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2. MOCKUP CSS — YOURS
+   ──────────────────────────────────────────────────────────────────────────
+   The fake screen. Match the real product's component shapes: how its tables,
+   pills, sidebars, modals and buttons actually look.
+
+   The placeholder below exists only so the template runs. Delete it.
+   ══════════════════════════════════════════════════════════════════════════ */
+.placeholder-app { display: flex; height: 100vh; }
+.placeholder-nav { width: 240px; background: #f8f9fa; border-right: 1px solid var(--line); padding: 20px; }
+.placeholder-nav h2 { font-size: 15px; margin: 0 0 18px; }
+.placeholder-nav div { padding: 8px 10px; border-radius: var(--radius); color: var(--ink-2); font-size: 13px; }
+.placeholder-nav div.on { background: var(--primary-10); color: var(--primary); font-weight: 600; }
+.placeholder-main { flex: 1; padding: 28px 32px; overflow: auto; }
+.placeholder-main h1 { font-size: 20px; margin: 0 0 6px; }
+.placeholder-main p.sub { color: var(--dimmed); margin: 0 0 22px; font-size: 13px; }
+#phTable { width: 100%; border-collapse: collapse; font-size: 13px; }
+#phTable th { text-align: left; padding: 9px 12px; border-bottom: 2px solid var(--line);
+              font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--dimmed); }
+#phTable td { padding: 11px 12px; border-bottom: 1px solid var(--line); }
+#phTable tr.hit td { background: rgba(47,95,160,.05); }
+.ph-pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px;
+           font-weight: 700; color: #fff; background: var(--dimmed); }
+#phPanel { position: fixed; right: 24px; bottom: 70px; width: 260px; background: #fff;
+           border: 1px solid var(--line); border-radius: 8px; padding: 16px;
+           box-shadow: 0 12px 34px rgba(0,0,0,.14); display: none; }
+#phPanel.on { display: block; }
+#phPanel h3 { margin: 0 0 10px; font-size: 13px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3. ENGINE CSS — DO NOT EDIT
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Spotlight ───────────────────────────────────────────────────────────
+   #spot has no background of its own. A 9999px box-shadow spread darkens the
+   whole screen around it, so whatever sits inside the hole stays fully lit. */
+#spot {
+  position: fixed; z-index: 1150; border-radius: 10px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(10,13,16,.66), 0 0 0 2px rgba(255,255,255,.6);
+  opacity: 0; top: 50%; left: 50%; width: 0; height: 0;
+  transition: opacity .3s ease, top .5s cubic-bezier(.22,.9,.3,1),
+              left .5s cubic-bezier(.22,.9,.3,1), width .5s cubic-bezier(.22,.9,.3,1),
+              height .5s cubic-bezier(.22,.9,.3,1), border-radius .5s ease;
+}
+#spot.on { opacity: 1; }
+#spot.no-anim { transition: none !important; }
+
+/* ─── Narration pill ─── */
+.narration {
+  position: fixed; left: 50%; top: 78px; transform: translateX(-50%) translateY(-8px);
+  z-index: 1500; background: #1a1d1f; color: #fff; padding: 11px 20px; border-radius: 999px;
+  font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(16,24,40,.25);
+  opacity: 0; pointer-events: none; transition: opacity .3s ease, transform .3s ease;
+  max-width: min(680px, calc(100vw - 60px)); text-align: center;
+}
+.narration.in { opacity: 1; transform: translateX(-50%) translateY(0); }
+.narration .step-n { display: inline-block; background: rgba(255,255,255,.16); border-radius: 999px;
+                     font-size: 10px; font-weight: 700; padding: 2px 7px; margin-right: 9px; }
+
+/* ─── Transport bar ─── */
+.tour-bar {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 1500;
+  display: flex; align-items: center; gap: 6px; background: #1a1d1f; color: #fff;
+  border-radius: 999px; padding: 5px 6px 5px 14px; box-shadow: 0 10px 30px rgba(16,24,40,.28);
+}
+.tour-bar .dots { display: flex; gap: 4px; margin-right: 8px; }
+.tour-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.28);
+                 transition: background .2s ease, transform .15s ease; cursor: pointer; }
+.tour-bar .dot:hover { background: rgba(255,255,255,.6); transform: scale(1.35); }
+.tour-bar .dot.done { background: rgba(255,255,255,.55); }
+.tour-bar .dot.on { background: #fff; transform: scale(1.35); }
+.tour-bar .step-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.65);
+                        margin-right: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tour-bar button { font-family: inherit; font-size: 11px; font-weight: 600; border: none; cursor: pointer;
+                   border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.14); color: #fff;
+                   white-space: nowrap; flex: none; width: auto; }
+.tour-bar button:hover { background: rgba(255,255,255,.26); }
+.tour-bar button.tnav { padding: 5px 10px; font-size: 10px; line-height: 1; }
+.tour-bar button:disabled { opacity: .3; cursor: default; }
+.tour-bar button:disabled:hover { background: rgba(255,255,255,.14); }
+.tour-bar button.go { background: #40c057; }
+.tour-bar button.go:hover { background: #37b24d; }
+
+/* ─── Intro card ─── */
+#hero {
+  position: fixed; inset: 0; z-index: 1600; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(14,18,22,.74); opacity: 0; transition: opacity .55s ease; }
+#hero.in { opacity: 1; }
+#hero.out { opacity: 0; pointer-events: none; }
+.hero-card {
+  background: #fff; border-radius: 16px; width: 660px; max-width: 100%;
+  padding: 40px 46px 30px; box-shadow: 0 40px 110px rgba(0,0,0,.42);
+  transform: translateY(14px) scale(.982);
+  transition: transform .55s cubic-bezier(.2,.85,.3,1); }
+#hero.in .hero-card { transform: none; }
+.hero-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 26px; }
+.hero-brand img { height: 30px; }
+.hero-brand .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .9px;
+                       text-transform: uppercase; color: var(--dimmed); }
+.hero-card h1 { font-size: 27px; line-height: 1.22; margin: 0 0 12px; letter-spacing: -.4px; }
+.hero-card .lede { font-size: 15px; color: var(--ink-2); line-height: 1.55; margin: 0 0 24px; }
+.hero-list { border-top: 1px solid var(--line); margin-bottom: 26px; }
+.hero-item { display: flex; gap: 13px; align-items: flex-start;
+             padding: 13px 0; border-bottom: 1px solid var(--line); }
+.hero-num { width: 21px; height: 21px; min-width: 21px; border-radius: 50%; background: var(--primary-10);
+            color: var(--primary); font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.hero-item b { font-size: 13.5px; display: block; }
+.hero-item span { font-size: 12.5px; color: var(--dimmed); }
+.hero-foot { display: flex; align-items: center; gap: 14px; }
+.hero-foot .count { font-size: 12px; color: var(--dimmed); }
+#heroStart { height: 42px; border: none; border-radius: 8px; background: var(--primary); color: #fff;
+             font-family: inherit; font-size: 13.5px; font-weight: 700; padding: 0 24px; cursor: pointer; }
+#heroStart:hover { background: var(--primary-dark); }
+
+/* ─── Review panel ─── */
+.ap-overlay { position: fixed; inset: 0; z-index: 1400; background: rgba(20,22,24,.55);
+              display: none; align-items: center; justify-content: center; padding: 24px; }
+.ap-overlay.on { display: flex; }
+.ap-card { background: #fff; border-radius: 12px; width: 560px; max-width: 100%; max-height: 92vh;
+           overflow-y: auto; box-shadow: 0 30px 80px rgba(0,0,0,.35); padding: 26px 28px 22px; }
+.ap-card h2 { margin: 0 0 4px; font-size: 19px; }
+.ap-sub { color: var(--dimmed); font-size: 13px; margin-bottom: 20px; }
+.ap-field { margin-bottom: 16px; }
+.ap-label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+.ap-label .req { color: var(--alert); margin-left: 3px; }
+.ap-field input[type=text], .ap-field textarea {
+  width: 100%; border: 1px solid var(--line-2); border-radius: var(--radius);
+  padding: 9px 11px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; }
+.ap-field textarea { min-height: 92px; resize: vertical; }
+.ap-field input:focus, .ap-field textarea:focus {
+  outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-10); }
+.ap-field.bad input, .ap-field.bad textarea { border-color: var(--alert); background: rgba(224,49,49,.03); }
+.ap-err { color: var(--alert); font-size: 11.5px; margin-top: 5px; display: none; }
+.ap-field.bad .ap-err { display: block; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice { border: 1.5px solid var(--line); border-radius: 8px; padding: 11px 12px; cursor: pointer;
+          display: flex; gap: 10px; align-items: flex-start; transition: all .12s ease; background: #fff; }
+.choice:hover { border-color: var(--line-2); background: var(--hover); }
+.choice .dot { width: 15px; height: 15px; min-width: 15px; border-radius: 50%;
+               border: 2px solid var(--line-2); margin-top: 1px; }
+.choice .ct { font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.choice .cs { font-size: 11px; color: var(--dimmed); margin-top: 2px; }
+.choice.on .dot { border-color: currentColor; box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 9px currentColor; }
+.choice.on .ct { color: inherit; }
+.choice[data-v="approve"].on,
+.choice[data-v="approve_comments"].on { border-color: #2f9e44; color: #2f9e44; background: rgba(47,158,68,.05); }
+.choice[data-v="changes"].on          { border-color: #f08c00; color: #f08c00; background: rgba(240,140,0,.05); }
+.choice[data-v="reject"].on           { border-color: var(--alert); color: var(--alert); background: rgba(224,49,49,.05); }
+.ap-actions { display: flex; gap: 10px; margin-top: 22px; align-items: center; }
+.ap-actions .grow { flex: 1; }
+.btn-lg { height: 40px; border-radius: 6px; font-size: 13px; font-weight: 700; font-family: inherit;
+          cursor: pointer; padding: 0 20px; border: none; }
+.btn-send { background: var(--primary); color: #fff; }
+.btn-send:hover { background: var(--primary-dark); }
+.btn-cancel { background: #fff; border: 1px solid var(--line-2); color: var(--ink-2); }
+.ap-done { text-align: center; padding: 18px 0 6px; }
+.ap-done .tick { width: 54px; height: 54px; border-radius: 50%; background: #d3f9d8; color: #2f9e44;
+                 display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.ap-done h3 { margin: 0 0 6px; font-size: 17px; }
+.ap-done p { color: var(--dimmed); font-size: 13px; margin: 0 0 16px; }
+.payload { text-align: left; background: #f6f8f9; border: 1px solid var(--line); border-radius: 6px;
+           padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+           white-space: pre-wrap; word-break: break-word; color: var(--ink-2);
+           max-height: 200px; overflow-y: auto; }
+.ap-hintline { font-size: 11px; color: var(--dimmed); margin-top: 12px; line-height: 1.5; }
+.review-btn { position: fixed; top: 14px; right: 24px; z-index: 1250; background: #1a1d1f; color: #fff;
+              border: none; border-radius: 999px; font-family: inherit; font-size: 11.5px; font-weight: 700;
+              padding: 7px 15px; cursor: pointer; box-shadow: 0 4px 14px rgba(16,24,40,.22);
+              display: flex; align-items: center; gap: 7px; }
+.review-btn:hover { background: #000; }
+.review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #40c057; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     4. MOCKUP MARKUP — YOURS
+     The fake screen. Replace the placeholder below entirely.
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div class="placeholder-app">
+  <div class="placeholder-nav" id="phNav">
+    <h2>Placeholder</h2>
+    <div class="on">Records</div>
+    <div>Reports</div>
+    <div>Settings</div>
+  </div>
+  <div class="placeholder-main">
+    <h1 id="phTitle">Records</h1>
+    <p class="sub" id="phSub">Replace this whole screen with the real thing.</p>
+    <table id="phTable">
+      <thead><tr><th>Name</th><th>Reference</th><th>Owner</th><th>Status</th></tr></thead>
+      <tbody id="phRows"></tbody>
+    </table>
+  </div>
+</div>
+<div id="phPanel"><h3>Placeholder panel</h3>
+  <p style="margin:0;font-size:12px;color:var(--dimmed)">A panel the tour can open and spotlight.</p></div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     5. INTRO CARD — YOURS (the words), ENGINE (the structure)
+     What the reviewer sees before anything moves: this is what we think we
+     heard. Keep it to three or four points.
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="hero">
+  <div class="hero-card">
+    <div class="hero-brand">
+      <img id="heroLogo" alt="" style="display:none" />
+      <span class="eyebrow" id="heroEyebrow">Product · Feature</span>
+    </div>
+    <h1 id="heroTitle">Your team has asked for a change to the application.</h1>
+    <p class="lede">This is what we think we heard. Have a look — and with your approval,
+       we can get started.</p>
+    <div class="hero-list" id="heroList">
+      <div class="hero-item"><div class="hero-num">1</div>
+        <div><b>First thing the feature does</b><span>One line on why it matters.</span></div></div>
+      <div class="hero-item"><div class="hero-num">2</div>
+        <div><b>Second thing the feature does</b><span>One line on why it matters.</span></div></div>
+      <div class="hero-item"><div class="hero-num">3</div>
+        <div><b>Third thing the feature does</b><span>One line on why it matters.</span></div></div>
+    </div>
+    <div class="hero-foot">
+      <button id="heroStart">Show me</button>
+      <span class="count">Starting in <b id="heroCount">7</b>…</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     ENGINE CHROME — DO NOT EDIT (except the review panel's subtitle)
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="spot"></div>
+<div class="narration" id="narration" aria-live="polite"></div>
+<div class="tour-bar" id="tourBar">
+  <div class="dots" id="tourDots"></div>
+  <span class="step-label" id="tourStepLabel">1 / 1</span>
+  <button class="tnav" id="tourPrev" title="Previous step">&#9664;</button>
+  <button class="tnav" id="tourNext" title="Next step">&#9654;</button>
+  <button id="tourToggle">Pause</button>
+  <button id="tourReplay">Replay</button>
+  <button class="go" id="tourFeedback">Give feedback</button>
+</div>
+
+<button class="review-btn" id="reviewBtn"><span class="g"></span> Looks good? Give feedback</button>
+
+<div class="ap-overlay" id="apOverlay">
+  <div class="ap-card">
+    <div id="apForm">
+      <h2>Looks good?</h2>
+      <div class="ap-sub" id="apSubtitle">Your answer goes back to the team that built this.</div>
+
+      <div class="ap-field" id="fName">
+        <label class="ap-label" for="apName">Your name <span class="req">*</span></label>
+        <input type="text" id="apName" placeholder="Who is reviewing this?" autocomplete="name" />
+        <div class="ap-err">We need to know who reviewed this.</div>
+      </div>
+
+      <div class="ap-field">
+        <label class="ap-label" for="apOrg">Company / role <span style="color:#868e96;font-weight:500">(optional)</span></label>
+        <input type="text" id="apOrg" placeholder="e.g. Acme — VP Operations" />
+      </div>
+
+      <div class="ap-field" id="fDecision">
+        <label class="ap-label">Your decision <span class="req">*</span></label>
+        <div class="choices" id="apChoices">
+          <div class="choice" data-v="approve"><div class="dot"></div><div><div class="ct">Approve</div><div class="cs">Build it as shown</div></div></div>
+          <div class="choice" data-v="approve_comments"><div class="dot"></div><div><div class="ct">Approve with comments</div><div class="cs">Go ahead, with tweaks</div></div></div>
+          <div class="choice" data-v="changes"><div class="dot"></div><div><div class="ct">Request changes</div><div class="cs">Close, but not yet</div></div></div>
+          <div class="choice" data-v="reject"><div class="dot"></div><div><div class="ct">Reject</div><div class="cs">This isn't what we want</div></div></div>
+        </div>
+        <div class="ap-err">Pick one.</div>
+      </div>
+
+      <div class="ap-field" id="fComment">
+        <label class="ap-label" id="apCommentLabel" for="apComment">Comments <span style="color:#868e96;font-weight:500">(optional)</span></label>
+        <textarea id="apComment" placeholder="Anything you would change?"></textarea>
+        <div class="ap-err">Tell us what needs to change.</div>
+      </div>
+
+      <div class="ap-actions">
+        <div class="grow"></div>
+        <button class="btn-lg btn-cancel" id="apCancel">Cancel</button>
+        <button class="btn-lg btn-send" id="apSend">Send feedback</button>
+      </div>
+    </div>
+
+    <div id="apDone" style="display:none">
+      <div class="ap-done">
+        <div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h3 id="apDoneTitle">Thank you</h3>
+        <p id="apDoneMsg"></p>
+        <div class="payload" id="apPayload"></div>
+        <div class="ap-actions">
+          <button class="btn-lg btn-cancel" id="apCopy">Copy</button>
+          <button class="btn-lg btn-cancel" id="apDownload">Download</button>
+          <button class="btn-lg btn-cancel" id="apEmail">Email it</button>
+          <div class="grow"></div>
+          <button class="btn-lg btn-send" id="apClose">Close</button>
+        </div>
+        <div class="ap-hintline" id="apHint"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   6. CONFIG — YOURS
+   ══════════════════════════════════════════════════════════════════════════ */
+const PRODUCT  = 'Product';           // the application this feature belongs to
+const FEATURE  = 'Feature';           // the feature being proposed
+
+/* How the reviewer's answer gets back to you.
+   Leave all three blank and the page still works: the reviewer gets their
+   review as copyable text, a downloadable file, and a pre-filled email.
+   Nothing is ever sent anywhere without the reviewer pressing a button. */
+const FEEDBACK_EMAIL = '';   // your address — enables the "Email it" button
+const WEBHOOK_URL    = '';   // optional: your own Slack or Discord incoming webhook
+const WEBHOOK_STYLE  = 'slack';   // 'slack' or 'discord'
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7. MOCKUP STATE AND RENDERING — YOURS
+   ──────────────────────────────────────────────────────────────────────────
+   Fake data and the functions that draw it. Use the real product's field
+   names and vocabulary. Invent the values, never the terminology.
+
+   Pin a fixed "today" so dates in the mockup never drift and the same
+   walkthrough looks identical next month.
+   ══════════════════════════════════════════════════════════════════════════ */
+const TODAY = new Date(2026, 0, 15);
+
+const RECORDS = [
+  { name:'Northwind Traders',  ref:'R-1041', owner:'Ada Whitfield', status:'Open' },
+  { name:'Contoso Logistics',  ref:'R-1042', owner:'Ada Whitfield', status:'Open' },
+  { name:'Fabrikam Holdings',  ref:'R-1043', owner:'Omar Reyes',    status:'Closed' },
+  { name:'Tailspin Freight',   ref:'R-1044', owner:'Ada Whitfield', status:'Open' },
+];
+
+let highlighted = null;   // which rows the current tour step is calling out
+
+function renderMockup(){
+  $('phRows').innerHTML = RECORDS.map(r => `
+    <tr class="${highlighted && highlighted(r) ? 'hit' : ''}">
+      <td><b>${r.name}</b></td><td>${r.ref}</td><td>${r.owner}</td>
+      <td><span class="ph-pill">${r.status}</span></td>
+    </tr>`).join('');
+}
+
+/* Called before the tour starts and on every Replay. Put the mockup back to
+   its opening state here: close every panel, clear every filter and
+   selection. If you skip this, Replay starts from wherever the last run
+   left off and the walkthrough looks broken. */
+function resetMockup(){
+  highlighted = null;
+  $('phPanel').classList.remove('on');
+  renderMockup();
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8. THE TOUR — YOURS
+   ──────────────────────────────────────────────────────────────────────────
+   One entry per step. `text` is what the narration pill says. `run` changes
+   the screen to match, then calls spotReveal() on the thing being described.
+
+   Rules that make the difference between convincing and cheap:
+     - One idea per step. If a sentence has an "and" in it, it is two steps.
+     - Say what it does for the person, not what the control is called.
+     - Make the screen actually move. Filter the list, open the panel, cycle
+       a setting through real values. A static screenshot with a caption is
+       not a walkthrough.
+     - Spotlight the smallest region that makes the point.
+     - Aim for eight to fifteen steps. Past fifteen, people stop watching.
+     - End by asking the question: does this look right?
+
+   Every `run` is async. `await sleep(ms)` between changes so the eye keeps up.
+   ══════════════════════════════════════════════════════════════════════════ */
+const TOUR = [
+  { text:'This is the record list as it works today.',
+    run: async()=>{ resetMockup(); await spotReveal(['#phTable'], 12); } },
+
+  { text:'The new feature flags the records that need attention, without you going looking for them.',
+    run: async()=>{ highlighted = r => r.status==='Open'; renderMockup();
+                    await sleep(150); await spotReveal(['#phRows'], 8); } },
+
+  { text:'The detail panel opens beside the list, so you never lose your place.',
+    run: async()=>{ $('phPanel').classList.add('on');
+                    await sleep(200); await spotReveal(['#phPanel'], 14); } },
+
+  { text:'That is the whole feature. Does this look right to you?',
+    run: async()=>{ resetMockup(); spotOff(); } },
+];
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9. ENGINE — DO NOT EDIT BELOW THIS LINE
+   ══════════════════════════════════════════════════════════════════════════ */
+const $ = (id) => document.getElementById(id);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+/* Mac says option, Windows and Linux say alt — the page speaks whichever one
+   the reviewer is actually on. Use ${MODKEY} in narration text. */
+const IS_MAC = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
+const MODKEY = IS_MAC ? 'option' : 'alt';
+
+let tourToken=0, tourAuto=false, tourPaused=false, currentStep=0;
+
+function narrate(text,n,total){
+  const pill=$('narration');
+  pill.innerHTML = `<span class="step-n">${n}/${total}</span>${text}`;
+  pill.classList.add('in');
+}
+function hideNarration(){ $('narration').classList.remove('in'); }
+
+let spotTargets = null;
+function computeRect(selectors, pad){
+  const rects = selectors
+    .flatMap(sel => [...document.querySelectorAll(sel)])
+    .map(n => n.getBoundingClientRect())
+    .filter(r => r.width > 0 && r.height > 0);
+  if(!rects.length) return null;
+  const top    = Math.min(...rects.map(r=>r.top))    - pad;
+  const left   = Math.min(...rects.map(r=>r.left))   - pad;
+  const bottom = Math.max(...rects.map(r=>r.bottom)) + pad;
+  const right  = Math.max(...rects.map(r=>r.right))  + pad;
+  return { top: Math.max(0, top), left: Math.max(0, left),
+           width:  Math.min(window.innerWidth,  right - left),
+           height: Math.min(window.innerHeight, bottom - top) };
+}
+function applySpot(){
+  const el = $('spot');
+  if(!spotTargets){ el.classList.remove('on'); return; }
+  const r = computeRect(spotTargets.selectors, spotTargets.pad);
+  if(!r){ el.classList.remove('on'); return; }
+  el.style.top=r.top+'px'; el.style.left=r.left+'px';
+  el.style.width=r.width+'px'; el.style.height=r.height+'px';
+  el.classList.add('on');
+}
+
+/* The highlight is born at the narration pill and grows out to the thing
+   being described, so the caption and the lit region read as one gesture. */
+async function spotReveal(selectors, pad){
+  pad = (pad==null) ? 12 : pad;
+  spotTargets = { selectors, pad };
+  const el = $('spot'), pill = $('narration');
+  const target = computeRect(selectors, pad);
+  if(!target){ spotOff(); return; }
+
+  const p = pill.getBoundingClientRect();
+  el.classList.add('no-anim');                 // snap to the caption, unanimated
+  el.style.borderRadius = '999px';
+  el.style.top = p.top+'px';   el.style.left = p.left+'px';
+  el.style.width = p.width+'px'; el.style.height = p.height+'px';
+  void el.offsetWidth;                         // flush, so the next change animates
+  el.classList.remove('no-anim');
+
+  el.classList.add('on');                      // dim fades in around the caption
+  await sleep(280);
+  el.style.borderRadius = '10px';              // then zoom out to the target
+  el.style.top = target.top+'px';   el.style.left = target.left+'px';
+  el.style.width = target.width+'px'; el.style.height = target.height+'px';
+}
+function spotOff(){ spotTargets = null; $('spot').classList.remove('on'); }
+
+/* A pause-aware wait that abandons itself if a newer jump supersedes it. */
+async function hold(ms, token){
+  let waited=0;
+  while(waited<ms){
+    if(token!==undefined && token!==tourToken) throw new Error('superseded');
+    while(tourPaused && (token===undefined || token===tourToken)) await sleep(110);
+    await sleep(80); waited+=80;
+  }
+  if(token!==undefined && token!==tourToken) throw new Error('superseded');
+}
+
+function renderDots(active){
+  $('tourDots').innerHTML = TOUR.map((_,i)=>
+    `<div class="dot ${i===active?'on':(i<active?'done':'')}" data-step="${i}" title="Step ${i+1}"></div>`
+  ).join('');
+}
+function updateTourUI(){
+  renderDots(currentStep);
+  $('tourStepLabel').textContent = `${currentStep+1} / ${TOUR.length}`;
+  $('tourPrev').disabled = currentStep <= 0;
+  $('tourNext').disabled = currentStep >= TOUR.length-1;
+  $('tourToggle').textContent = (tourAuto && !tourPaused) ? 'Pause' : 'Play';
+}
+
+/* One driver. Every jump bumps the token, so whatever step is mid-flight
+   gives up quietly instead of fighting the new one. */
+async function playFrom(i, auto){
+  const token = ++tourToken;
+  tourAuto = auto; tourPaused = false;
+  try{
+    for(let k=i; k<TOUR.length; k++){
+      if(token!==tourToken) return;
+      currentStep = k; updateTourUI();
+      spotOff();
+      narrate(TOUR[k].text, k+1, TOUR.length);
+      await hold(1000, token);
+      await TOUR[k].run();
+      if(token!==tourToken) return;
+      if(!auto){ tourAuto=false; updateTourUI(); return; }   // single step: stop here
+      await hold(TOUR[k].text.length > 95 ? 3400 : 2600, token);
+    }
+    if(token!==tourToken) return;
+    hideNarration(); spotOff();
+    tourAuto=false; updateTourUI();
+    openApproval();
+  }catch(e){ /* superseded by a newer jump */ }
+}
+const runTour = () => playFrom(0, true);
+function stopTour(){ ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
+
+$('tourPrev').addEventListener('click', ()=>{ if(currentStep>0) playFrom(currentStep-1, false); });
+$('tourNext').addEventListener('click', ()=>{ if(currentStep<TOUR.length-1) playFrom(currentStep+1, false); });
+$('tourDots').addEventListener('click', e=>{
+  const d=e.target.closest('.dot'); if(!d) return;
+  playFrom(parseInt(d.dataset.step,10), false);
+});
+$('tourToggle').addEventListener('click',()=>{
+  if(tourAuto){ tourPaused = !tourPaused; updateTourUI(); }
+  else { playFrom(Math.min(currentStep+1, TOUR.length-1), true); }   // resume auto from here
+});
+$('tourReplay').addEventListener('click',()=>{ resetMockup(); playFrom(0, true); });
+const toFeedback = ()=>{ stopTour(); hideNarration(); spotOff(); openApproval(); };
+$('tourFeedback').addEventListener('click', toFeedback);
+$('reviewBtn').addEventListener('click', toFeedback);
+window.addEventListener('resize', applySpot);
+
+/* ─── Review panel ─── */
+let decision=null;
+function openApproval(){ $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
+function closeApproval(){ $('apOverlay').classList.remove('on'); }
+
+$('apChoices').addEventListener('click', e=>{
+  const c=e.target.closest('.choice'); if(!c) return;
+  decision=c.dataset.v;
+  $('apChoices').querySelectorAll('.choice').forEach(x=>x.classList.toggle('on', x===c));
+  $('fDecision').classList.remove('bad');
+  const needs = decision!=='approve';
+  $('apCommentLabel').innerHTML = needs
+    ? 'Comments <span class="req">*</span>'
+    : 'Comments <span style="color:#868e96;font-weight:500">(optional)</span>';
+  $('apComment').placeholder = decision==='reject'
+    ? 'What is wrong with this, and what would you want instead?'
+    : 'Anything you would change?';
+});
+$('apCancel').addEventListener('click', closeApproval);
+$('apClose').addEventListener('click', closeApproval);
+
+const DECISION_LABEL = { approve:'APPROVED', approve_comments:'APPROVED WITH COMMENTS',
+  changes:'CHANGES REQUESTED', reject:'REJECTED' };
+
+function buildPayloadText(v){
+  return [
+    `${PRODUCT} — ${FEATURE}`,
+    `${DECISION_LABEL[v.decision]}`,
+    ``,
+    `Reviewer: ${v.name}${v.org ? ` — ${v.org}` : ''}`,
+    `When: ${v.when}`,
+    v.comment ? `Comments:\n  ${v.comment.replace(/\n/g,'\n  ')}` : `Comments: none`,
+  ].join('\n');
+}
+
+$('apSend').addEventListener('click', async ()=>{
+  const name=$('apName').value.trim(), org=$('apOrg').value.trim(), comment=$('apComment').value.trim();
+  let ok=true;
+  $('fName').classList.toggle('bad', !name); if(!name) ok=false;
+  $('fDecision').classList.toggle('bad', !decision); if(!decision) ok=false;
+  const commentRequired = decision && decision!=='approve';
+  $('fComment').classList.toggle('bad', !!(commentRequired && !comment));
+  if(commentRequired && !comment) ok=false;
+  if(!ok){ (!name ? $('apName') : $('apComment')).focus(); return; }
+
+  const payload = { name, org, comment, decision,
+    when: new Date().toLocaleString(undefined,{ dateStyle:'medium', timeStyle:'short' }) };
+  const text = buildPayloadText(payload);
+
+  const btn=$('apSend'); btn.disabled=true; btn.textContent='Sending…';
+  let delivered=false;
+  if(WEBHOOK_URL){
+    try{
+      // text/plain dodges the CORS preflight that Slack and Discord webhooks reject
+      const body = WEBHOOK_STYLE==='discord' ? { content: text } : { text };
+      await fetch(WEBHOOK_URL,{ method:'POST', headers:{'Content-Type':'text/plain'},
+                                body: JSON.stringify(body) });
+      delivered=true;
+    }catch(e){ delivered=false; }
+  }
+  btn.disabled=false; btn.textContent='Send feedback';
+
+  $('apForm').style.display='none'; $('apDone').style.display='block';
+  $('apDoneTitle').textContent = delivered ? 'Sent — thank you' : 'Recorded — one more step';
+  $('apDoneMsg').textContent = delivered
+    ? 'Your review has been posted to the team.'
+    : 'Copy this, download it, or use Email it — whichever suits you.';
+  $('apPayload').textContent = text;
+  $('apHint').textContent = delivered ? '' : 'Nothing leaves this page until you choose one of the buttons above.';
+  $('apEmail').style.display = FEEDBACK_EMAIL ? '' : 'none';
+  window.__lastReview = { payload, text };
+});
+
+$('apCopy').addEventListener('click', ()=>{
+  const t=$('apPayload').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t).then(()=>{
+      $('apCopy').textContent='Copied'; setTimeout(()=>$('apCopy').textContent='Copy',1600);
+    }).catch(()=>{});
+  }
+});
+$('apDownload').addEventListener('click', ()=>{
+  const r=window.__lastReview; if(!r) return;
+  const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const blob = new Blob([r.text], { type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${slug(PRODUCT)}-${slug(FEATURE)}-review-${slug(r.payload.name)}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$('apEmail').addEventListener('click', ()=>{
+  const r=window.__lastReview; if(!r || !FEEDBACK_EMAIL) return;
+  const subj=`${PRODUCT} — ${FEATURE} — ${DECISION_LABEL[r.payload.decision]} — ${r.payload.name}`;
+  window.location.href =
+    `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(r.text)}`;
+});
+
+/* ─── Boot: intro card, then the tour ─── */
+async function showHero(){
+  const h=$('hero');
+  await sleep(250);
+  h.classList.add('in');
+  let n=7; $('heroCount').textContent=n;
+  const tick=setInterval(()=>{ n--; $('heroCount').textContent=Math.max(0,n); }, 1000);
+  await new Promise(res=>{
+    let done=false;
+    const go=()=>{ if(done) return; done=true; clearInterval(tick); res(); };
+    $('heroStart').addEventListener('click', go, { once:true });
+    h.addEventListener('click', e=>{ if(e.target===h) go(); });
+    setTimeout(go, 7400);
+  });
+  h.classList.remove('in'); h.classList.add('out');
+  await sleep(560);
+  h.style.display='none';
+}
+
+$('apSubtitle').textContent = `${PRODUCT} — ${FEATURE}. Your answer goes back to the team that built this.`;
+$('heroEyebrow').textContent = `${PRODUCT} · ${FEATURE}`;
+$('apEmail').style.display = FEEDBACK_EMAIL ? '' : 'none';
+resetMockup(); updateTourUI();
+showHero().then(runTour);
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+---
+name: feature-walkthrough
+description: Use when someone wants to show a customer or stakeholder a feature that has not been built yet - a narrated, self-playing walkthrough of a proposed feature, styled to look like their real application, produced as one self-contained HTML file. Triggers on "/feature-walkthrough", "mock up this feature", "show them what it would look like", "demo a feature we haven't built", "feature request demo", "get approval on a feature".
+---
+
+# Feature walkthrough
+
+Turn a codebase and a description of a proposed feature into a single HTML file that
+plays a narrated walkthrough of that feature as if it already existed.
+
+The output is one file. No build step, no dependencies, no server, no network calls.
+The person you send it to double-clicks it and it plays.
+
+## What it produces
+
+A page that opens with a card saying "this is what we think we heard", then plays
+itself: a caption appears, a spotlight grows out of the caption onto the exact part
+of the screen being described, and the screen actually moves — lists filter, panels
+open, settings cycle through real values. The viewer can pause, step back and forward,
+jump to any step, or replay. At the end it asks the only question that matters:
+does this look right? Their answer comes back as copyable text, a downloadable file,
+or a pre-filled email.
+
+The point is to find out whether you understood the request **before** you build it.
+
+## What you need from the user
+
+Exactly two things. Ask for both, then stop and wait.
+
+1. **The codebase** — a path to the repository of the application the feature belongs to.
+2. **What the feature should do** — in as much detail as they can give.
+
+If they give you one and not the other, ask for the missing one. Do not start
+without both. A walkthrough built without reading the codebase looks like a generic
+template, and a walkthrough built from a one-line description shows the wrong feature.
+
+## Procedure
+
+### Step 1 — Read the codebase
+
+This is the step that makes the result convincing, and it is the step that is
+tempting to skip. Do not skip it.
+
+Read `reference/reading-the-codebase.md` and follow it. You are extracting three
+things: the real theme values, the real component shapes, and the real vocabulary.
+
+Never invent a colour, a font, a field name, or a piece of domain terminology that
+you could have read from the codebase instead.
+
+### Step 2 — Say back what you understood, and wait
+
+Before building anything, tell the user in plain language:
+
+- which application this is, and how you can tell
+- the visual style you extracted, naming the actual values
+- what you believe the feature does, broken into three or four points
+- the walkthrough you intend to script, as a numbered list of steps
+
+Then stop and ask them to correct it. This costs one message and saves a rebuild.
+It is also exactly what the intro card will say, so the work is not wasted.
+
+Only continue once they confirm.
+
+### Step 3 — Build the file
+
+Copy `template/walkthrough-template.html` to a new file named for the feature and
+fill in the five sections marked YOURS. They are numbered in the file:
+
+1. **Theme tokens** — the values from step 1
+2. **Mockup CSS** — the fake screen's styles, matching the real product's components
+3. **Mockup markup** — the fake screen itself, replacing the placeholder entirely
+4. **Mockup state** — fake data using the product's real vocabulary, plus `renderMockup()` and `resetMockup()`
+5. **The tour** — the narration script
+
+Read `reference/writing-the-tour.md` before writing the tour. The tour is the
+difference between something people watch to the end and something they close.
+
+Leave everything marked ENGINE alone. It is proven and it is not worth re-deriving.
+
+Put the finished file wherever the user is working, not in a temporary directory.
+Name it after the feature, for example `expiring-quotes-walkthrough.html`.
+
+### Step 4 — Check it actually runs
+
+Do not hand over a file you have not seen work. Read
+`reference/verifying.md` and run the checks there. At minimum, confirm the
+JavaScript parses and the page renders with the spotlight on the right element.
+
+### Step 5 — Hand it over
+
+Tell the user the full path to the file and that they can open it by
+double-clicking it or send it to anyone as an attachment.
+
+If they want the reviewer's answer to come back automatically rather than by
+copy and paste, read `reference/sharing-the-result.md` — it covers the optional
+webhook and how to put the file on a web address. Do not set any of that up
+unless they ask.
+
+## Rules
+
+**Fake the data, never the vocabulary.** Invent company names, amounts and dates.
+Never invent what the product calls things. If the codebase says "policy" do not
+write "record". If a status is "BOUND AND ISSUED" do not shorten it. Getting a
+customer's own words wrong is what makes a mockup feel like it was made by someone
+who was not listening.
+
+**Fix the date.** Pin a constant `TODAY` in the file. A walkthrough that computes
+dates from the real clock looks wrong a month later.
+
+**Show the feature working, not the feature existing.** A step that says "here is the
+new panel" is weak. A step that says "the list filters to exactly the four that need
+you" and then filters the list is what sells it.
+
+**Do not build the feature.** This is a drawing of a feature, not an implementation.
+Never modify the codebase you were pointed at. Read from it only.
+
+**One file, no dependencies.** No CDN links, no fonts fetched over the network, no
+frameworks. It has to work on a laptop with no internet, opened from a file path,
+possibly years from now.
+
+## Reference
+
+- `reference/reading-the-codebase.md` — how to extract the theme, components and vocabulary
+- `reference/writing-the-tour.md` — how to script a walkthrough people watch to the end
+- `reference/verifying.md` — how to confirm the file works before you hand it over
+- `reference/sharing-the-result.md` — optional: webhooks and hosting
+- `template/walkthrough-template.html` — the engine, with the five slots
+- `example/` — a complete worked example, with notes on why it is built the way it is
