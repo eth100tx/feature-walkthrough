@@ -23,6 +23,37 @@ or a pre-filled email.
 
 The point is to find out whether you understood the request **before** you build it.
 
+## The controls the viewer gets
+
+The transport bar along the bottom is part of the engine, so every walkthrough has
+all of it without you writing a line:
+
+| Control | What it does |
+| --- | --- |
+| Step dots, `◀` `▶` | Jump to any step, or move one at a time. |
+| `Pause` / `Play` | Stops the tour where it is, and the narration with it. |
+| `Replay` | Puts the mockup back to its opening state and starts again. |
+| `1×` | Cycles the speed: 1×, 1.5×, 2×, 0.75×. |
+| `Voice on` / `Voice off` | Reads the narration aloud. |
+| Speaker | Mutes and unmutes without turning the narration off. |
+| Slider | Sets the narration volume. Dragging it to zero is a mute. |
+
+Two things are worth knowing about the voice. It uses a voice already installed on
+the viewer's machine, so the narration works with the network off, exactly like the
+rest of the file. And browsers refuse to play audio until the viewer has interacted
+with the page, so the voice switches itself on only when they actually press **Show
+me**. If the intro card simply times out, the walkthrough starts silent and the Voice
+button turns it on.
+
+Speed changes the step timing and the speaking rate together, and applies from the
+next sentence so the current one is not cut off. When the voice is on, each step
+waits for its sentence to finish rather than guessing at a duration, so the narration
+and the pacing cannot drift apart.
+
+**Because a viewer can jump to any step, every step must set up its own screen.**
+Never write a step whose `run` depends on the step before it having run: put the
+scene, the filters and the open panels that step needs inside that step.
+
 ## What you need from the user
 
 Exactly two things. Ask for both, then stop and wait.
