@@ -41,135 +41,193 @@ html, body {
   height: 100%; overflow: hidden;
 }
 
-/* ─────────────────────── WORKSPACE ─────────────────────── */
-.shell { display: flex; flex-direction: column; height: 100vh; }
+/* ═══════════════════════════ STAGE ═══════════════════════════
+   One scene on screen at a time. Every scene is a flat, wireframe-ish panel
+   so the walkthrough reads as a sketch of a product rather than a screenshot
+   pretending to be one. */
+.stage { display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
 
-.topbar { height: 46px; flex: none; background: var(--panel); border-bottom: 1px solid var(--line);
-          display: flex; align-items: center; padding: 0 20px; gap: 12px; }
-.topbar .mark { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--primary);
+.topbar { height: 52px; flex: none; background: var(--panel); border-bottom: 1px solid var(--line);
+          display: flex; align-items: center; padding: 0 22px; gap: 13px; }
+.topbar .mark { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--primary);
                 letter-spacing: -.3px; }
 .topbar .sep { width: 1px; height: 18px; background: var(--line); }
-.topbar .crumb { font-size: 12px; color: var(--dimmed); }
+.topbar .crumb { font-size: 12.5px; color: var(--dimmed); }
 .topbar .spacer { flex: 1; }
-.topbar .tag { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
-               color: var(--dimmed); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+.topbar .chip { font-size: 10px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase;
+                color: var(--dimmed); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
 
-.work { flex: 1; display: grid; grid-template-columns: 236px 1fr 430px; min-height: 0; }
+.scenes { flex: 1; position: relative; min-height: 0; }
+.scene { position: absolute; inset: 0; display: flex; flex-direction: column;
+         align-items: center; justify-content: center; padding: 34px 44px 104px;
+         opacity: 0; pointer-events: none; transform: translateY(10px);
+         transition: opacity .5s ease, transform .5s cubic-bezier(.22,.9,.3,1); }
+.scene.on { opacity: 1; pointer-events: auto; transform: none; }
 
-/* ─── Codebase pane ─── */
-.files { background: var(--panel); border-right: 1px solid var(--line); padding: 16px 0; overflow: auto; }
-.files h3 { font-size: 10px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase;
-            color: var(--dimmed); margin: 0 0 10px; padding: 0 16px; }
-.frow { display: flex; align-items: center; gap: 8px; padding: 5px 16px; font-family: var(--mono);
-        font-size: 11.5px; color: var(--ink-2); }
-.frow .ic { width: 13px; height: 13px; flex: none; opacity: .45; }
-.frow .tick { margin-left: auto; color: var(--ok); opacity: 0; transform: scale(.5);
-              transition: opacity .3s ease, transform .3s cubic-bezier(.2,1.4,.4,1); font-weight: 700; }
-.frow.read { color: var(--ink); background: rgba(47,158,68,.06); }
-.frow.read .ic { opacity: .8; }
-.frow.read .tick { opacity: 1; transform: none; }
-.frow.dir { color: var(--dimmed); font-weight: 600; }
-.frow.nested { padding-left: 30px; }
+.kicker { font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+          color: var(--primary); margin-bottom: 12px; }
+.headline { font-size: 30px; line-height: 1.2; letter-spacing: -.6px; margin: 0 0 10px;
+            text-align: center; max-width: 780px; font-weight: 700; }
+.subline { font-size: 14.5px; color: var(--ink-2); margin: 0 0 30px; text-align: center; max-width: 620px; }
 
-/* ─── Terminal pane ─── */
-.termwrap { background: var(--term-bg); display: flex; flex-direction: column; min-height: 0; }
-.termhead { height: 32px; flex: none; background: var(--term-head); display: flex; align-items: center;
-            padding: 0 13px; gap: 7px; }
-.termhead .tl { width: 10px; height: 10px; border-radius: 50%; }
-.termhead .tl.r { background: #ff5f57; } .termhead .tl.y { background: #febc2e; }
-.termhead .tl.g { background: #28c840; }
-.termhead .tt { margin-left: 9px; font-family: var(--mono); font-size: 11px; color: var(--term-dim); }
-.term { flex: 1; overflow: hidden; padding: 16px 20px; font-family: var(--mono);
-        font-size: 12.2px; line-height: 1.72; color: var(--term-text); }
+/* ─── Scene 1: the three reasons ─── */
+.cards { display: grid; grid-template-columns: repeat(3, 250px); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px;
+        box-shadow: 0 1px 2px rgba(13,17,23,.04); opacity: .32; transform: translateY(6px);
+        transition: opacity .45s ease, transform .45s cubic-bezier(.22,.9,.3,1),
+                    border-color .45s ease, box-shadow .45s ease; }
+.card.lit { opacity: 1; transform: none; border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(47,95,160,.16); }
+.card .ico { width: 34px; height: 34px; border-radius: 9px; background: var(--primary-10);
+             color: var(--primary); display: flex; align-items: center; justify-content: center;
+             margin-bottom: 14px; }
+.card b { display: block; font-size: 15px; margin-bottom: 5px; }
+.card span { font-size: 12.5px; color: var(--dimmed); line-height: 1.5; }
+.verdict { margin-top: 26px; font-size: 15px; font-weight: 600; color: var(--ink);
+           opacity: 0; transition: opacity .5s ease; text-align: center; }
+.verdict.on { opacity: 1; }
+
+/* ─── Scene 2: the ask ─── */
+.term-win { width: 720px; max-width: 100%; background: var(--term-bg); border-radius: 12px;
+            overflow: hidden; box-shadow: 0 24px 60px rgba(13,17,23,.30); }
+.term-head { height: 34px; background: var(--term-head); display: flex; align-items: center;
+             padding: 0 14px; gap: 7px; }
+.term-head i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+.term-head i.r { background: #ff5f57; } .term-head i.y { background: #febc2e; } .term-head i.g { background: #28c840; }
+.term-head .tt { margin-left: 10px; font-family: var(--mono); font-size: 11px; color: var(--term-dim); }
+.term-body { padding: 20px 24px; font-family: var(--mono); font-size: 13px; line-height: 1.8;
+             color: var(--term-text); min-height: 268px; }
 .tline { white-space: pre-wrap; }
-.tline.dim   { color: var(--term-dim); }
-.tline.user  { color: var(--term-blue); }
-.tline.ok    { color: var(--term-green); }
-.tline.warn  { color: var(--term-amber); }
-.tline.bold  { font-weight: 700; }
-.tline.gap   { height: 9px; }
-.caret { display: inline-block; width: 7px; height: 14px; background: var(--term-green);
-         vertical-align: -2px; animation: blink 1.05s step-end infinite; }
+.tline.dim { color: var(--term-dim); }
+.tline.you { color: var(--term-blue); }
+.tline.ok { color: var(--term-green); }
+.tline.gap { height: 10px; }
+.caret { display: inline-block; width: 7px; height: 15px; background: var(--term-green);
+         vertical-align: -3px; animation: blink 1.05s step-end infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* ─── Output pane ─── */
-.outwrap { background: var(--panel); border-left: 1px solid var(--line); display: flex;
-           flex-direction: column; min-height: 0; }
-.outhead { height: 38px; flex: none; border-bottom: 1px solid var(--line); display: flex;
-           align-items: center; padding: 0 16px; gap: 9px; }
-.outhead .name { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
-.outhead .size { margin-left: auto; font-size: 10.5px; color: var(--dimmed); }
-.outbody { flex: 1; position: relative; overflow: hidden; background: #e9ecef; }
+/* ─── Scene 3: what it reads ─── */
+.reads { display: grid; grid-template-columns: 300px 300px; gap: 10px 22px; }
+.read { display: flex; align-items: center; gap: 12px; background: var(--panel); border-radius: 10px;
+        border: 1px solid var(--line); padding: 13px 15px; opacity: .3; transform: translateX(-6px);
+        transition: all .4s cubic-bezier(.22,.9,.3,1); }
+.read.lit { opacity: 1; transform: none; border-color: rgba(47,158,68,.45); background: rgba(47,158,68,.04); }
+.read .fn { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+.read .got { margin-left: auto; font-size: 11.5px; color: var(--dimmed); }
+.read.lit .got { color: var(--ok); font-weight: 600; }
+.reads-note { margin-top: 24px; font-size: 13.5px; color: var(--ink-2); text-align: center; }
 
-.empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
-         justify-content: center; gap: 9px; color: var(--dimmed); font-size: 12px; padding: 30px;
-         text-align: center; transition: opacity .4s ease; }
-.empty svg { opacity: .28; }
+/* ─── Scene 4: the one file ─── */
+.filecard { background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+            padding: 30px 34px; box-shadow: 0 18px 46px rgba(13,17,23,.10); text-align: center;
+            width: 560px; max-width: 100%; }
+.filecard .fname { font-family: var(--mono); font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.filecard .fsize { font-size: 12.5px; color: var(--dimmed); margin-bottom: 22px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip-no { font-size: 12px; font-weight: 600; color: var(--ok); background: rgba(47,158,68,.09);
+           border: 1px solid rgba(47,158,68,.28); border-radius: 999px; padding: 6px 13px;
+           opacity: 0; transform: scale(.9); transition: all .32s cubic-bezier(.2,1.5,.4,1); }
+.chip-no.on { opacity: 1; transform: none; }
 
-/* The miniature walkthrough rendered inside the output pane */
-.mini { position: absolute; inset: 0; opacity: 0; transition: opacity .5s ease; }
-.mini.on { opacity: 1; }
-.mini-chrome { position: absolute; inset: 0; background: var(--panel); display: flex; flex-direction: column; }
-.mini-nav { height: 34px; flex: none; background: var(--hover); border-bottom: 1px solid var(--line);
-            display: flex; align-items: center; padding: 0 12px; gap: 8px; }
-.mini-nav .b { font-size: 10.5px; font-weight: 800; color: var(--primary); letter-spacing: .9px; }
-.mini-nav .n { font-size: 10px; color: var(--dimmed); }
-.mini-body { flex: 1; padding: 13px; overflow: hidden; }
-.mini-h { font-size: 12.5px; font-weight: 700; margin: 0 0 9px; }
-.mtable { width: 100%; border-collapse: collapse; font-size: 10.5px; }
-.mtable th { text-align: left; padding: 5px 7px; border-bottom: 1.5px solid var(--line);
-             font-size: 8.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--dimmed); }
-.mtable td { padding: 6px 7px; border-bottom: 1px solid var(--line); color: var(--ink-2); }
-.mtable tr.flag td { background: rgba(224,49,49,.055); }
-.mtable tr.flag td:first-child { box-shadow: inset 2px 0 0 var(--alert); }
-.mpill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 8.5px;
-         font-weight: 700; color: #fff; background: var(--dimmed); }
-.mpill.open { background: #fab005; } .mpill.rev { background: #569fb0; }
+/* ─── Scene 5: it plays anywhere ─── */
+.rigs { display: flex; align-items: flex-end; gap: 30px; }
+.rig { text-align: center; opacity: .28; transform: translateY(8px);
+       transition: all .5s cubic-bezier(.22,.9,.3,1); }
+.rig.lit { opacity: 1; transform: none; }
+.rig .glass { background: var(--term-bg); border: 3px solid #2a3037; border-radius: 10px;
+              position: relative; overflow: hidden; }
+.rig.laptop .glass { width: 250px; height: 156px; }
+.rig.phone  .glass { width: 96px; height: 180px; border-radius: 14px; }
+.rig.future .glass { width: 210px; height: 132px; }
+.rig .base { height: 8px; background: #cdd3d9; border-radius: 0 0 7px 7px; margin: 0 auto; }
+.rig.laptop .base { width: 280px; }
+.rig.future .base { width: 60px; height: 26px; border-radius: 3px; }
+.rig .cap { margin-top: 11px; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.rig .sub { font-size: 11px; color: var(--dimmed); }
+.playing { position: absolute; inset: 0; padding: 9px; }
+.playing .pl-h { height: 7px; width: 54%; background: #3a434c; border-radius: 3px; margin-bottom: 7px; }
+.playing .pl-r { height: 5px; background: #2b323a; border-radius: 3px; margin-bottom: 5px; }
+.playing .pl-r.a { width: 88%; } .playing .pl-r.b { width: 70%; } .playing .pl-r.c { width: 79%; }
+.playing .pl-cap { position: absolute; left: 50%; transform: translateX(-50%); bottom: 22px;
+                   background: rgba(16,19,22,.95); color: #fff; font-size: 6.5px; padding: 3px 7px;
+                   border-radius: 5px; white-space: nowrap; }
+.playing .pl-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 7px;
+                   display: flex; gap: 3px; }
+.playing .pl-bar i { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.3); display: block; }
+.playing .pl-bar i.on { background: #fff; }
+.offline { position: absolute; top: 8px; right: 8px; font-size: 7.5px; font-weight: 700;
+           color: #ffb4b4; background: rgba(224,49,49,.22); border: 1px solid rgba(224,49,49,.5);
+           border-radius: 999px; padding: 2px 6px; }
 
-/* the mini caption + its own little spotlight */
-.mini-cap { position: absolute; left: 50%; transform: translateX(-50%) translateY(-6px); top: 44px;
-            background: #1a1d1f; color: #fff; font-size: 9.5px; padding: 5px 11px; border-radius: 999px;
-            max-width: 88%; text-align: center; opacity: 0; transition: all .35s ease; z-index: 4;
-            box-shadow: 0 6px 18px rgba(16,24,40,.3); }
-.mini-cap.in { opacity: 1; transform: translateX(-50%) translateY(0); }
-.mini-spot { position: absolute; border-radius: 5px; pointer-events: none; z-index: 3;
-             box-shadow: 0 0 0 9999px rgba(10,13,16,.6); opacity: 0;
-             transition: opacity .35s ease, top .45s ease, left .45s ease, width .45s ease, height .45s ease; }
-.mini-spot.on { opacity: 1; }
-.mini-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 11px; z-index: 4;
-            background: #1a1d1f; border-radius: 999px; padding: 4px 9px; display: flex; gap: 3px;
-            align-items: center; opacity: 0; transition: opacity .35s ease; }
-.mini-bar.on { opacity: 1; }
-.mini-bar i { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.3); }
-.mini-bar i.on { background: #fff; }
+/* ─── Scene 6: what the viewer gets ─── */
+.player { width: 700px; max-width: 100%; background: var(--term-bg); border-radius: 13px;
+          position: relative; overflow: hidden; box-shadow: 0 24px 60px rgba(13,17,23,.32);
+          height: 330px; }
+.player .pbody { position: absolute; inset: 0; padding: 26px 30px; }
+.player .ph { height: 11px; width: 42%; background: #39424b; border-radius: 4px; margin-bottom: 14px; }
+.player .pr { height: 8px; background: #2a313a; border-radius: 4px; margin-bottom: 9px; }
+.player .pr.a { width: 92%; } .player .pr.b { width: 76%; } .player .pr.c { width: 84%; }
+.player .pr.d { width: 62%; }
+.player .pspot { position: absolute; border: 2px solid rgba(255,255,255,.7); border-radius: 8px;
+                 box-shadow: 0 0 0 9999px rgba(9,12,16,.50); opacity: 0;
+                 transition: all .55s cubic-bezier(.22,.9,.3,1); z-index: 2; }
+.player .pspot.on { opacity: 1; }
+.player .pcap { position: absolute; left: 50%; transform: translateX(-50%); top: 22px; z-index: 3;
+                background: rgba(16,19,22,.96); color: #fff; font-size: 12px; padding: 9px 15px;
+                border-radius: 10px; box-shadow: 0 14px 34px rgba(0,0,0,.4); white-space: nowrap;
+                opacity: 0; transition: opacity .4s ease; }
+.player .pcap.on { opacity: 1; }
+.player .pbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 3;
+                display: flex; align-items: center; gap: 5px; background: rgba(16,19,22,.96);
+                border-radius: 11px; padding: 6px 7px 6px 12px;
+                box-shadow: 0 14px 34px rgba(0,0,0,.4); }
+.player .pbar .pd { display: flex; gap: 3px; margin-right: 6px; }
+.player .pbar .pd i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.28); display: block; }
+.player .pbar .pd i.on { background: #fff; }
+.player .pbar button { font-family: inherit; font-size: 10px; font-weight: 600; border: none;
+                       border-radius: 6px; padding: 5px 9px; background: rgba(255,255,255,.13);
+                       color: #fff; transition: all .3s ease; }
+.player .pbar button.hot { background: #fff; color: #14171a; transform: translateY(-1px); }
+.player .pbar .vol { width: 42px; height: 3px; border-radius: 999px; background: rgba(255,255,255,.3);
+                     position: relative; margin: 0 5px; }
+.player .pbar .vol::after { content: ''; position: absolute; right: -2px; top: -3px; width: 9px; height: 9px;
+                            border-radius: 50%; background: #fff; }
+.callout { position: absolute; z-index: 4; font-size: 11.5px; font-weight: 700; color: var(--ink);
+           background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+           padding: 6px 11px; box-shadow: 0 8px 22px rgba(13,17,23,.16);
+           opacity: 0; transform: translateY(5px); transition: all .35s cubic-bezier(.22,.9,.3,1); }
+.callout.on { opacity: 1; transform: none; }
 
-/* the mini intro card and review panel */
-.mini-over { position: absolute; inset: 0; z-index: 6; background: rgba(14,18,22,.72);
-             display: flex; align-items: center; justify-content: center; padding: 16px;
-             opacity: 0; pointer-events: none; transition: opacity .45s ease; }
-.mini-over.on { opacity: 1; }
-.mini-card { background: #fff; border-radius: 9px; padding: 16px 18px; width: 100%;
-             box-shadow: 0 18px 44px rgba(0,0,0,.35); }
-.mini-card .eye { font-size: 8px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
-                  color: var(--dimmed); margin-bottom: 8px; }
-.mini-card h4 { margin: 0 0 6px; font-size: 13px; line-height: 1.25; }
-.mini-card p { margin: 0 0 11px; font-size: 10.5px; color: var(--ink-2); line-height: 1.5; }
-.mini-card .it { display: flex; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line);
-                 font-size: 10px; align-items: flex-start; }
-.mini-card .it b { display: block; font-size: 10px; }
-.mini-card .it span { color: var(--dimmed); font-size: 9.5px; }
-.mini-card .num { width: 15px; height: 15px; min-width: 15px; border-radius: 50%;
-                  background: var(--primary-10); color: var(--primary); font-size: 8.5px; font-weight: 700;
-                  display: flex; align-items: center; justify-content: center; }
-.mini-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 9px 0 0; }
-.mini-choice { border: 1.2px solid var(--line); border-radius: 5px; padding: 6px 7px; font-size: 9px;
-               font-weight: 700; color: var(--ink-2); transition: all .2s ease; }
-.mini-choice.on { border-color: var(--ok); color: var(--ok); background: rgba(47,158,68,.06); }
+/* ─── Scene 7: the answer ─── */
+.answer { width: 520px; max-width: 100%; background: var(--panel); border: 1px solid var(--line);
+          border-radius: 14px; padding: 26px 28px; box-shadow: 0 18px 46px rgba(13,17,23,.12); }
+.answer h4 { margin: 0 0 4px; font-size: 18px; }
+.answer .as { color: var(--dimmed); font-size: 12.5px; margin-bottom: 18px; }
+.answer .fld { border: 1px solid var(--line-2); border-radius: 6px; padding: 9px 12px; font-size: 13px;
+               color: var(--ink-2); margin-bottom: 14px; }
+.picks { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.pick { border: 1.5px solid var(--line); border-radius: 9px; padding: 11px 13px; font-size: 13px;
+        font-weight: 700; color: var(--ink-2); transition: all .35s ease; }
+.pick.on { border-color: var(--ok); color: var(--ok); background: rgba(47,158,68,.06); }
+
+.routes { display: flex; gap: 7px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+.route { font-size: 11.5px; font-weight: 600; color: var(--ink-2); background: var(--hover);
+         border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+         opacity: 0; transform: translateY(4px);
+         transition: all .3s cubic-bezier(.2,1.4,.4,1); }
+.route.on { opacity: 1; transform: none; }
+
+/* ─── Scene 8: the close ─── */
+.close-line { font-size: 15px; color: var(--ink-2); margin-top: 8px; text-align: center; }
+.cmd { display: inline-block; font-family: var(--mono); font-size: 15px; font-weight: 700;
+       color: var(--primary); background: var(--primary-10); border-radius: 8px; padding: 9px 16px;
+       margin-top: 22px; }
 
 /* ─────────────────────── ENGINE ─────────────────────── */
 #spot {
   position: fixed; z-index: 1150; border-radius: 10px; pointer-events: none;
-  box-shadow: 0 0 0 9999px rgba(10,13,16,.66), 0 0 0 2px rgba(255,255,255,.6);
+  box-shadow: 0 0 0 9999px rgba(9,12,16,.55), 0 0 0 1px rgba(255,255,255,.30),
+              0 0 0 5px rgba(255,255,255,.10), 0 22px 60px rgba(0,0,0,.45);
   opacity: 0; top: 50%; left: 50%; width: 0; height: 0;
   transition: opacity .3s ease, top .5s cubic-bezier(.22,.9,.3,1),
               left .5s cubic-bezier(.22,.9,.3,1), width .5s cubic-bezier(.22,.9,.3,1),
@@ -179,20 +237,27 @@ html, body {
 #spot.no-anim { transition: none !important; }
 
 .narration {
-  position: fixed; left: 50%; top: 74px; transform: translateX(-50%) translateY(-8px);
-  z-index: 1500; background: #1a1d1f; color: #fff; padding: 11px 20px; border-radius: 999px;
-  font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(16,24,40,.25);
+  position: fixed; left: 50%; top: 72px; transform: translateX(-50%) translateY(-8px);
+  z-index: 1500; background: rgba(16,19,22,.95); color: #fff; padding: 13px 22px;
+  border-radius: 14px; font-size: 14.5px; font-weight: 500; line-height: 1.45;
+  letter-spacing: -.1px;
+  box-shadow: 0 20px 48px rgba(9,12,16,.44), 0 0 0 1px rgba(255,255,255,.09);
   opacity: 0; pointer-events: none; transition: opacity .3s ease, transform .3s ease;
-  max-width: min(700px, calc(100vw - 60px)); text-align: center;
+  max-width: min(620px, calc(100vw - 60px)); text-align: left;
 }
+/* Flipped below the subject when the caption would otherwise cover it. */
+.narration.low { top: auto; bottom: 78px; }
 .narration.in { opacity: 1; transform: translateX(-50%) translateY(0); }
-.narration .step-n { display: inline-block; background: rgba(255,255,255,.16); border-radius: 999px;
-                     font-size: 10px; font-weight: 700; padding: 2px 7px; margin-right: 9px; }
+.narration .step-n { display: inline-block; background: rgba(255,255,255,.14);
+                     border-radius: 6px; font-size: 10.5px; font-weight: 700; padding: 3px 7px;
+                     margin-right: 11px; vertical-align: 1px; letter-spacing: .4px;
+                     color: rgba(255,255,255,.78); font-variant-numeric: tabular-nums; }
 
 .tour-bar {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 1500;
-  display: flex; align-items: center; gap: 6px; background: #1a1d1f; color: #fff;
-  border-radius: 999px; padding: 5px 6px 5px 14px; box-shadow: 0 10px 30px rgba(16,24,40,.28);
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 1500;
+  display: flex; align-items: center; gap: 6px; background: rgba(16,19,22,.95); color: #fff;
+  border-radius: 14px; padding: 7px 8px 7px 16px;
+  box-shadow: 0 20px 48px rgba(9,12,16,.44), 0 0 0 1px rgba(255,255,255,.09);
 }
 .tour-bar .dots { display: flex; gap: 4px; margin-right: 8px; }
 .tour-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.28);
@@ -202,15 +267,33 @@ html, body {
 .tour-bar .dot.on { background: #fff; transform: scale(1.35); }
 .tour-bar .step-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.65);
                         margin-right: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tour-bar button { font-family: inherit; font-size: 11px; font-weight: 600; border: none; cursor: pointer;
-                   border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.14); color: #fff;
-                   white-space: nowrap; flex: none; width: auto; }
+.tour-bar button { font-family: inherit; font-size: 11.5px; font-weight: 600; border: none;
+                   cursor: pointer; border-radius: 8px; padding: 6px 13px;
+                   background: rgba(255,255,255,.12); color: #fff; white-space: nowrap;
+                   flex: none; width: auto; transition: background .15s ease; }
 .tour-bar button:hover { background: rgba(255,255,255,.26); }
-.tour-bar button.tnav { padding: 5px 10px; font-size: 10px; line-height: 1; }
+.tour-bar button.tnav { padding: 6px 10px; font-size: 10px; line-height: 1;
+                        background: rgba(255,255,255,.08); }
+.tour-bar { flex-wrap: wrap; justify-content: center; row-gap: 5px;
+            /* left:50% alone caps a fixed box at half the viewport, which wraps the
+               bar long before it needs to; max-content lets it size to its buttons. */
+            width: max-content; max-width: calc(100vw - 32px); }
+.tour-bar button.on { background: rgba(255,255,255,.30); }
+.tour-bar button.on:hover { background: rgba(255,255,255,.38); }
+.tour-bar button#tourSpeed { font-variant-numeric: tabular-nums; min-width: 44px; }
+.tour-bar button#tourMute { font-size: 12px; line-height: 1; padding: 6px 9px; }
+.tour-bar input[type=range] { -webkit-appearance: none; appearance: none; width: 64px; height: 4px;
+                              border-radius: 999px; background: rgba(255,255,255,.30); outline: none;
+                              cursor: pointer; flex: none; margin: 0 4px 0 2px; }
+.tour-bar input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+                              width: 11px; height: 11px; border-radius: 50%; background: #fff; cursor: pointer; }
+.tour-bar input[type=range]::-moz-range-thumb { width: 11px; height: 11px; border: none;
+                              border-radius: 50%; background: #fff; cursor: pointer; }
+.tour-bar input[type=range]:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,.30); }
 .tour-bar button:disabled { opacity: .3; cursor: default; }
 .tour-bar button:disabled:hover { background: rgba(255,255,255,.14); }
-.tour-bar button.go { background: #40c057; }
-.tour-bar button.go:hover { background: #37b24d; }
+.tour-bar button.go { background: #2f9e44; padding: 6px 15px; }
+.tour-bar button.go:hover { background: #2b8a3e; }
 
 #hero {
   position: fixed; inset: 0; z-index: 1600; display: flex; align-items: center; justify-content: center;
@@ -293,119 +376,195 @@ html, body {
            white-space: pre-wrap; word-break: break-word; color: var(--ink-2);
            max-height: 200px; overflow-y: auto; }
 .ap-hintline { font-size: 11px; color: var(--dimmed); margin-top: 12px; line-height: 1.5; }
-.review-btn { position: fixed; top: 12px; right: 20px; z-index: 1250; background: #1a1d1f; color: #fff;
-              border: none; border-radius: 999px; font-family: inherit; font-size: 11.5px; font-weight: 700;
-              padding: 7px 15px; cursor: pointer; box-shadow: 0 4px 14px rgba(16,24,40,.22);
-              display: flex; align-items: center; gap: 7px; }
-.review-btn:hover { background: #000; }
-.review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #40c057; }
+.review-btn { position: fixed; top: 14px; right: 20px; z-index: 1250;
+              background: #fff; color: var(--ink-2);
+              border: 1px solid rgba(16,24,40,.22); border-radius: 10px; font-family: inherit;
+              font-size: 11.5px; font-weight: 600; padding: 7px 13px; cursor: pointer;
+              box-shadow: 0 1px 2px rgba(16,24,40,.10), 0 6px 18px rgba(16,24,40,.09);
+              display: flex; align-items: center; gap: 7px; transition: all .15s ease; }
+.review-btn:hover { background: #fff; color: var(--ink); border-color: rgba(16,24,40,.26); }
+.review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #2f9e44; }
 </style>
 </head>
 <body>
 
-<div class="shell">
+<div class="stage">
   <div class="topbar">
-    <span class="mark">feature-walkthrough</span>
+    <span class="mark">feature&#8209;walkthrough</span>
     <span class="sep"></span>
-    <span class="crumb" id="crumb">~/work/acme-claims</span>
+    <span class="crumb" id="crumb">a skill, explained by the skill</span>
     <span class="spacer"></span>
-    <span class="tag">how it works</span>
+    <span class="chip" id="chip">one HTML file</span>
   </div>
 
-  <div class="work">
-    <!-- the codebase being read -->
-    <div class="files" id="files">
-      <h3>The codebase</h3>
-      <div id="fileRows"></div>
-    </div>
+  <div class="scenes">
 
-    <!-- the session -->
-    <div class="termwrap" id="termwrap">
-      <div class="termhead">
-        <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
-        <span class="tt">claude — acme-claims</span>
+    <!-- 1 ─ why anyone needs this -->
+    <section class="scene" id="scWhy">
+      <div class="kicker">The problem</div>
+      <h2 class="headline">You have to show someone something that does not exist yet.</h2>
+      <p class="subline">It happens three times in every project, and every time the answer is a video.</p>
+      <div class="cards">
+        <div class="card" id="cWhy1"><div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></div>
+          <b>A product spec</b><span>Agree the behaviour before anyone writes the code.</span></div>
+        <div class="card" id="cWhy2"><div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-7z"/></svg></div>
+          <b>An MVP pitch</b><span>Show the product before there is a product to show.</span></div>
+        <div class="card" id="cWhy3"><div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.3L17.5 20 12 16.8 6.5 20l1-6.7L3 9l6-1z"/></svg></div>
+          <b>A feature you shipped</b><span>So the people paying for it actually find it.</span></div>
       </div>
-      <div class="term" id="term"></div>
-    </div>
+      <div class="verdict" id="whyVerdict">And nobody has two days to make a video.</div>
+    </section>
 
-    <!-- what comes out -->
-    <div class="outwrap" id="outwrap">
-      <div class="outhead">
-        <span class="name" id="outName">no file yet</span>
-        <span class="size" id="outSize"></span>
+    <!-- 2 ─ what you give it -->
+    <section class="scene" id="scAsk">
+      <div class="kicker">What you give it</div>
+      <h2 class="headline">Point it at the code. Name the features.</h2>
+      <div class="term-win">
+        <div class="term-head"><i class="r"></i><i class="y"></i><i class="g"></i>
+          <span class="tt">claude &#8212; acme-claims</span></div>
+        <div class="term-body" id="term"></div>
       </div>
-      <div class="outbody" id="outbody">
-        <div class="empty" id="outEmpty">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
-          </svg>
-          <span>The walkthrough appears here</span>
-        </div>
+    </section>
 
-        <div class="mini" id="mini">
-          <div class="mini-chrome">
-            <div class="mini-nav"><span class="b">ACME</span><span class="n">Claims</span></div>
-            <div class="mini-body">
-              <h4 class="mini-h" id="miniH">Open claims</h4>
-              <table class="mtable">
-                <thead><tr><th>Claim</th><th>Adjuster</th><th>Last touched</th><th>Status</th></tr></thead>
-                <tbody id="miniRows"></tbody>
-              </table>
-            </div>
-          </div>
-          <div class="mini-spot" id="miniSpot"></div>
-          <div class="mini-cap" id="miniCap"></div>
-          <div class="mini-bar" id="miniBar"></div>
+    <!-- 3 ─ what it reads -->
+    <section class="scene" id="scRead">
+      <div class="kicker">What it reads</div>
+      <h2 class="headline">Your repository, for the look of it.</h2>
+      <p class="subline">Not the logic. The colours, the shapes and the words your product already uses.</p>
+      <div class="reads">
+        <div class="read" id="rd1"><span class="fn">src/theme.ts</span><span class="got">the real colours</span></div>
+        <div class="read" id="rd2"><span class="fn">components/ClaimsTable.tsx</span><span class="got">the real shapes</span></div>
+        <div class="read" id="rd3"><span class="fn">db/schema.sql</span><span class="got">the real fields</span></div>
+        <div class="read" id="rd4"><span class="fn">locales/en.json</span><span class="got">the real words</span></div>
+      </div>
+      <div class="reads-note" id="readNote">It never invents a colour or a word it could have read instead.</div>
+    </section>
 
-          <div class="mini-over" id="miniIntro">
-            <div class="mini-card">
-              <div class="eye">Acme Claims · Stale claim flags</div>
-              <h4>Your team has asked for a change.</h4>
-              <p>This is what we think we heard.</p>
-              <div class="it"><div class="num">1</div><div><b>Watch every open claim</b><span>Quietly, in the background.</span></div></div>
-              <div class="it"><div class="num">2</div><div><b>Flag anything untouched for five days</b><span>Before it goes cold.</span></div></div>
-              <div class="it"><div class="num">3</div><div><b>On the adjuster's own list</b><span>Where they already work.</span></div></div>
-            </div>
-          </div>
-
-          <div class="mini-over" id="miniReview">
-            <div class="mini-card">
-              <h4>Looks good?</h4>
-              <p>Acme Claims — Stale claim flags.</p>
-              <div class="mini-choices">
-                <div class="mini-choice" id="mc1">Approve</div>
-                <div class="mini-choice">Approve with comments</div>
-                <div class="mini-choice">Request changes</div>
-                <div class="mini-choice">Reject</div>
-              </div>
-            </div>
-          </div>
+    <!-- 4 ─ what comes out -->
+    <section class="scene" id="scFile">
+      <div class="kicker">What comes out</div>
+      <h2 class="headline">One file.</h2>
+      <div class="filecard">
+        <div class="fname">acme-claims-stale-alerts.html</div>
+        <div class="fsize" id="fsize">84 KB</div>
+        <div class="chips">
+          <span class="chip-no" id="ch1">No build step</span>
+          <span class="chip-no" id="ch2">No server</span>
+          <span class="chip-no" id="ch3">No dependencies</span>
+          <span class="chip-no" id="ch4">Nothing fetched</span>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- 5 ─ where it plays -->
+    <section class="scene" id="scWhere">
+      <div class="kicker">Where it plays</div>
+      <h2 class="headline">Anywhere. Including nowhere.</h2>
+      <div class="rigs">
+        <div class="rig laptop" id="rg1">
+          <div class="glass"><div class="playing"><div class="pl-h"></div>
+            <div class="pl-r a"></div><div class="pl-r b"></div><div class="pl-r c"></div>
+            <div class="pl-cap">Flagged before it goes cold</div>
+            <div class="pl-bar"><i></i><i class="on"></i><i></i><i></i></div></div>
+            <div class="offline">WIFI OFF</div></div>
+          <div class="base"></div>
+          <div class="cap">On a plane</div><div class="sub">37,000 feet, no signal</div>
+        </div>
+        <div class="rig phone" id="rg2">
+          <div class="glass"><div class="playing"><div class="pl-h"></div>
+            <div class="pl-r a"></div><div class="pl-r b"></div>
+            <div class="pl-bar"><i></i><i class="on"></i><i></i></div></div></div>
+          <div class="cap">On a phone</div><div class="sub">emailed, opened, done</div>
+        </div>
+        <div class="rig future" id="rg3">
+          <div class="glass"><div class="playing"><div class="pl-h"></div>
+            <div class="pl-r a"></div><div class="pl-r c"></div>
+            <div class="pl-bar"><i class="on"></i><i></i><i></i></div></div></div>
+          <div class="base"></div>
+          <div class="cap">In a hundred years</div><div class="sub">still just HTML</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 ─ what the viewer gets -->
+    <section class="scene" id="scPlayer">
+      <div class="kicker">What the viewer gets</div>
+      <h2 class="headline">It plays itself, and it talks.</h2>
+      <div class="player" id="player">
+        <div class="pbody"><div class="ph"></div>
+          <div class="pr a"></div><div class="pr b"></div><div class="pr c"></div>
+          <div class="pr d"></div><div class="pr b"></div><div class="pr a"></div></div>
+        <div class="pspot" id="pspot"></div>
+        <div class="pcap" id="pcap">The claim nobody has touched for five days</div>
+        <div class="pbar">
+          <span class="pd"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+          <button id="pbPause">Pause</button>
+          <button id="pbSpeed">1&times;</button>
+          <button id="pbVoice">Voice</button>
+          <button id="pbMute">&#128266;</button>
+          <span class="vol"></span>
+        </div>
+        <div class="callout" id="co1" style="left:24px;top:22px">Plays itself</div>
+        <div class="callout" id="co2" style="right:24px;top:96px">The light follows the words</div>
+        <div class="callout" id="co3" style="left:24px;bottom:70px">Reads itself aloud</div>
+        <div class="callout" id="co4" style="right:24px;bottom:70px">Speed, mute and volume</div>
+      </div>
+    </section>
+
+    <!-- 7 ─ what comes back -->
+    <section class="scene" id="scAnswer">
+      <div class="kicker">What comes back</div>
+      <h2 class="headline">They tell you whether you got it right.</h2>
+      <div class="answer">
+        <h4>Looks good?</h4>
+        <div class="as">Your answer goes back to the team that built this.</div>
+        <div class="fld" id="ansName">Dana Whitfield &#8212; Claims Operations</div>
+        <div class="picks">
+          <div class="pick" id="pk1">Approve</div>
+          <div class="pick" id="pk2">Approve with comments</div>
+          <div class="pick" id="pk3">Request changes</div>
+          <div class="pick" id="pk4">Reject</div>
+        </div>
+        <div class="routes">
+          <span class="route" id="rt1">Copy it</span>
+          <span class="route" id="rt2">Download it</span>
+          <span class="route" id="rt3">Email it to you</span>
+          <span class="route" id="rt4">Straight into Slack</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 ─ the close -->
+    <section class="scene" id="scEnd">
+      <div class="kicker">That is the whole thing</div>
+      <h2 class="headline">You made the video by pointing at your code.</h2>
+      <p class="close-line">A spec, a pitch, or a feature nobody noticed. Same command.</p>
+      <div class="cmd">/feature-walkthrough</div>
+    </section>
+
   </div>
 </div>
 
 <div id="hero">
   <div class="hero-card">
     <div class="hero-brand">
-      <span class="wm">feature-walkthrough</span>
-      <span class="eyebrow">How it works</span>
+      <img id="heroLogo" alt="" style="display:none" />
+      <span class="eyebrow" id="heroEyebrow">feature-walkthrough &#183; how it works</span>
     </div>
-    <h1>A customer asked for a feature. You think you understood them.</h1>
-    <p class="lede">This is how you find out whether you did — before you build it, not after.
-       Watch what the skill actually does, start to finish.</p>
-    <div class="hero-list">
+    <h1 id="heroTitle">This is a walkthrough of the thing that makes walkthroughs.</h1>
+    <p class="lede">Made with the skill it is describing, so what you are watching is also
+       the evidence. About ninety seconds, and it talks.</p>
+    <div class="hero-list" id="heroList">
       <div class="hero-item"><div class="hero-num">1</div>
-        <div><b>You give it two things</b><span>A codebase, and what the feature should do.</span></div></div>
+        <div><b>Point it at a codebase</b><span>And name the features worth showing.</span></div></div>
       <div class="hero-item"><div class="hero-num">2</div>
-        <div><b>It reads the codebase for the look, not the logic</b><span>Real colours, real components, real vocabulary.</span></div></div>
+        <div><b>It reads your repository for the look</b><span>Real colours, real shapes, real words.</span></div></div>
       <div class="hero-item"><div class="hero-num">3</div>
-        <div><b>You get one HTML file that plays itself</b><span>Send it. They double-click it. They answer.</span></div></div>
+        <div><b>Out comes one HTML file that plays itself</b><span>No build, no server, nothing fetched.</span></div></div>
     </div>
     <div class="hero-foot">
       <button id="heroStart">Show me</button>
-      <span class="count">Starting in <b id="heroCount">7</b>…</span>
+      <span class="count">Starting in <b id="heroCount">7</b>&#8230;</span>
     </div>
   </div>
 </div>
@@ -419,6 +578,11 @@ html, body {
   <button class="tnav" id="tourNext" title="Next step">&#9654;</button>
   <button id="tourToggle">Pause</button>
   <button id="tourReplay">Replay</button>
+  <button id="tourSpeed" title="Playback speed">1&times;</button>
+  <button id="tourVoice" title="Read the narration aloud">Voice Is Off</button>
+  <button id="tourMute" class="tnav" title="Mute the narration" hidden>&#128266;</button>
+  <input id="tourVol" type="range" min="0" max="100" step="5" value="60"
+         title="Narration volume" aria-label="Narration volume" hidden />
   <button class="go" id="tourFeedback">Give feedback</button>
 </div>
 
@@ -484,234 +648,193 @@ html, body {
 </div>
 
 <script>
+
 /* ══════════════════════════════════════════════════════════════════════════
    feature-walkthrough — how it works
 
-   This page was built with the skill it describes. The screen it shows is a
-   Claude Code session; the feature being demonstrated is the skill itself.
+   Built with the template in this repository, about the skill that produces
+   the template's output. Everything below the ENGINE banner is the shared
+   engine, carried over unchanged.
    ══════════════════════════════════════════════════════════════════════════ */
-
 const PRODUCT = 'feature-walkthrough';
 const FEATURE = 'How it works';
 const FEEDBACK_EMAIL = '';
 const WEBHOOK_URL    = '';
 const WEBHOOK_STYLE  = 'slack';
 
-/* ─── The codebase pane ─── */
-const FILES = [
-  { n:'acme-claims',            dir:true  },
-  { n:'src/theme.ts',           key:'theme'  },
-  { n:'components/',            dir:true, nested:true },
-  { n:'ClaimsTable.tsx',        nested:true, key:'comp' },
-  { n:'StatusPill.tsx',         nested:true, key:'comp' },
-  { n:'db/schema.sql',          key:'vocab' },
-  { n:'locales/en.json',        key:'vocab' },
-  { n:'src/api/claims.ts',      key:null  },
-  { n:'package.json',           key:null  },
-];
-let filesRead = new Set();
+/* ─── Stage ─────────────────────────────────────────────────────────────── */
+const SCENES = ['scWhy','scAsk','scRead','scFile','scWhere','scPlayer','scAnswer','scEnd'];
+let scene = null;
 
-function renderFiles(){
-  $('fileRows').innerHTML = FILES.map((f,i)=>{
-    const cls = ['frow', f.dir?'dir':'', f.nested?'nested':'', filesRead.has(i)?'read':''].filter(Boolean).join(' ');
-    const icon = f.dir
-      ? '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'
-      : '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
-    return `<div class="${cls}" data-i="${i}">${icon}<span>${f.n}</span><span class="tick">&#10003;</span></div>`;
-  }).join('');
-}
-function markRead(key){
-  FILES.forEach((f,i)=>{ if(f.key===key) filesRead.add(i); });
-  renderFiles();
+function showScene(id){
+  if(scene === id) return;
+  scene = id;
+  SCENES.forEach(s => $(s).classList.toggle('on', s === id));
 }
 
-/* ─── The session transcript ─── */
+const CRUMBS = {
+  scWhy:   ['the problem', 'one HTML file'],
+  scAsk:   ['what you give it', 'two answers'],
+  scRead:  ['what it reads', 'the look, not the logic'],
+  scFile:  ['what comes out', '84 KB'],
+  scWhere: ['where it plays', 'no dependencies'],
+  scPlayer:['what the viewer gets', 'plays itself'],
+  scAnswer:['what comes back', 'before you build'],
+  scEnd:   ['a skill, explained by the skill', 'one HTML file']
+};
+function crumbFor(id){
+  const c = CRUMBS[id]; if(!c) return;
+  $('crumb').textContent = c[0];
+  $('chip').textContent  = c[1];
+}
+async function toScene(id){ showScene(id); crumbFor(id); await sleep(420); }
+
+/* ─── The terminal in scene 2 ───────────────────────────────────────────── */
 const T = [
-  { t:'$ claude', c:'dim' },
-  { t:'' },
-  { t:'> /feature-walkthrough', c:'user bold' },
-  { t:'' },
-  { t:'  I need two things before I start.' },
-  { t:'    1. The path to the codebase this feature belongs to' },
-  { t:'    2. What the feature should do, in as much detail as you have' },
-  { t:'' },
-  { t:'> ~/work/acme-claims', c:'user' },
-  { t:'> When a claim sits untouched for five days, flag it on the', c:'user' },
-  { t:'  adjuster\'s own list so nothing goes quiet.', c:'user' },
-  { t:'' },
-  { t:'  Reading the codebase.', c:'dim' },
-  { t:'' },
-  { t:'  src/theme.ts ................ Mantine theme, real values', c:'ok' },
-  { t:'  components/ClaimsTable.tsx .. table shape and density', c:'ok' },
-  { t:'  components/StatusPill.tsx ... how a status is drawn', c:'ok' },
-  { t:'  db/schema.sql ............... the domain model', c:'ok' },
-  { t:'  locales/en.json ............. the words users actually see', c:'ok' },
-  { t:'' },
-  { t:'  Here is what I found.', c:'bold' },
-  { t:'' },
-  { t:'  Acme Claims, React and Mantine.' },
-  { t:'  Primary #2f5fa0, borders #dee2e6, radius 4px, 14px system font.' },
-  { t:'  Dense table, uppercase headers, filled pills in capsules.' },
-  { t:'  You call the records claims. The people are adjusters.' },
-  { t:'  Statuses: OPEN, IN REVIEW, APPROVED, DENIED, CLOSED.' },
-  { t:'' },
-  { t:'  And here is what I think the feature does.', c:'bold' },
-  { t:'' },
-  { t:'    1. Watches every open claim for inactivity' },
-  { t:'    2. Flags any claim untouched for five days' },
-  { t:'    3. Puts the flag on the adjuster\'s own list' },
-  { t:'' },
-  { t:'  Have I got that right?', c:'warn' },
-  { t:'' },
-  { t:'> yes, that is it', c:'user bold' },
-  { t:'' },
-  { t:'  Writing stale-claims-walkthrough.html', c:'dim' },
-  { t:'  Checking the JavaScript parses ......... ok', c:'ok' },
-  { t:'  Rendering it to confirm it draws ....... ok', c:'ok' },
-  { t:'  Checking it has no outside dependencies  ok', c:'ok' },
-  { t:'' },
-  { t:'  Done.', c:'bold' },
-  { t:'  ~/work/acme-claims/stale-claims-walkthrough.html', c:'ok' },
-  { t:'  One file, 84 KB. Send it to them.' },
+  { c:'dim',  t:'$ claude' },
+  { c:'gap' },
+  { c:'you',  t:'> /feature-walkthrough' },
+  { c:'gap' },
+  { c:'',     t:'  I need two things.' },
+  { c:'',     t:'   1. Where the code lives' },
+  { c:'',     t:'   2. Which features to put on screen' },
+  { c:'gap' },
+  { c:'you',  t:'> ~/work/acme-claims' },
+  { c:'you',  t:'> Stale claim alerts. Put them on the adjuster&rsquo;s own list.' },
+  { c:'you',  t:'  One click to snooze. Nothing else.' },
+  { c:'gap' },
+  { c:'dim',  t:'  Reading the codebase.' }
 ];
 let termUpTo = 0;
 
 function renderTerm(){
-  const lines = T.slice(0, termUpTo).map(l =>
-    l.t === '' ? '<div class="tline gap"></div>'
-               : `<div class="tline ${l.c||''}">${l.t}</div>`).join('');
+  const rows = T.slice(0, termUpTo).map(l =>
+    l.c === 'gap' ? '<div class="tline gap"></div>'
+                  : '<div class="tline ' + l.c + '">' + l.t + '</div>').join('');
   const caret = termUpTo < T.length ? '<div class="tline"><span class="caret"></span></div>' : '';
-  const el = $('term');
-  el.innerHTML = lines + caret;
-  el.scrollTop = el.scrollHeight;
+  $('term').innerHTML = rows + caret;
 }
-/* Type the transcript out line by line, so it reads like it is happening. */
-async function typeTo(n, perLine){
-  perLine = perLine || 55;
-  while(termUpTo < n){ termUpTo++; renderTerm(); await sleep(T[termUpTo-1].t===''?18:perLine); }
+async function typeTo(n, each){
+  while(termUpTo < n){ termUpTo++; renderTerm(); await sleep(each); }
 }
 
-/* ─── The output pane's miniature walkthrough ─── */
-const CLAIMS = [
-  { c:'CLM-4471', a:'R. Okonkwo', d:'2 days ago',  s:'OPEN',      cls:'open', stale:false },
-  { c:'CLM-4462', a:'R. Okonkwo', d:'9 days ago',  s:'OPEN',      cls:'open', stale:true  },
-  { c:'CLM-4455', a:'R. Okonkwo', d:'1 day ago',   s:'IN REVIEW', cls:'rev',  stale:false },
-  { c:'CLM-4439', a:'R. Okonkwo', d:'12 days ago', s:'OPEN',      cls:'open', stale:true  },
-  { c:'CLM-4428', a:'R. Okonkwo', d:'3 hours ago', s:'IN REVIEW', cls:'rev',  stale:false },
-];
-let miniFlagged = false;
+/* ─── Small helpers the tour leans on ───────────────────────────────────── */
+const lightAll = (ids, cls, on) => ids.forEach(i => $(i).classList.toggle(cls, !!on));
 
-function renderMini(){
-  $('miniRows').innerHTML = CLAIMS.map(r =>
-    `<tr class="${miniFlagged && r.stale ? 'flag' : ''}">
-       <td><b>${r.c}</b></td><td>${r.a}</td><td>${r.d}</td>
-       <td><span class="mpill ${r.cls}">${r.s}</span></td></tr>`).join('');
+async function lightInTurn(ids, cls, gap){
+  for(const id of ids){ $(id).classList.add(cls); await sleep(gap); }
 }
-function miniCaption(text){
-  const c = $('miniCap');
-  if(!text){ c.classList.remove('in'); return; }
-  c.textContent = text; c.classList.add('in');
-}
-function miniSpotOn(sel, pad){
-  pad = pad==null ? 5 : pad;
-  const host = $('outbody').getBoundingClientRect();
-  const t = document.querySelector(sel);
-  if(!t){ $('miniSpot').classList.remove('on'); return; }
-  const r = t.getBoundingClientRect();
-  const s = $('miniSpot');
-  s.style.top    = (r.top - host.top - pad) + 'px';
-  s.style.left   = (r.left - host.left - pad) + 'px';
-  s.style.width  = (r.width + pad*2) + 'px';
-  s.style.height = (r.height + pad*2) + 'px';
+
+/* Moves the fake spotlight inside the scene-6 player. Coordinates are in the
+   player's own box, so it stays put whatever the window is doing. */
+function pspot(left, top, width, height){
+  const s = $('pspot');
+  s.style.left = left + 'px'; s.style.top = top + 'px';
+  s.style.width = width + 'px'; s.style.height = height + 'px';
   s.classList.add('on');
-}
-function miniSpotOff(){ $('miniSpot').classList.remove('on'); }
-function miniDots(active, total){
-  const b = $('miniBar');
-  b.innerHTML = Array.from({length: total}, (_,i)=>`<i class="${i===active?'on':''}"></i>`).join('');
-  b.classList.add('on');
 }
 
 function resetMockup(){
-  filesRead = new Set(); renderFiles();
+  showScene('scWhy'); crumbFor('scWhy');
   termUpTo = 0; renderTerm();
-  miniFlagged = false; renderMini();
-  $('mini').classList.remove('on');
-  $('outEmpty').style.opacity = '1';
-  $('outName').textContent = 'no file yet';
-  $('outSize').textContent = '';
-  $('miniIntro').classList.remove('on');
-  $('miniReview').classList.remove('on');
-  $('mc1').classList.remove('on');
-  miniCaption(''); miniSpotOff();
-  $('miniBar').classList.remove('on');
+  lightAll(['cWhy1','cWhy2','cWhy3'], 'lit', false);
+  $('whyVerdict').classList.remove('on');
+  lightAll(['rd1','rd2','rd3','rd4'], 'lit', false);
+  lightAll(['ch1','ch2','ch3','ch4'], 'on', false);
+  lightAll(['rg1','rg2','rg3'], 'lit', false);
+  lightAll(['co1','co2','co3','co4'], 'on', false);
+  lightAll(['pbPause','pbSpeed','pbVoice','pbMute'], 'hot', false);
+  $('pcap').classList.remove('on');
+  $('pspot').classList.remove('on');
+  lightAll(['pk1','pk2','pk3','pk4'], 'on', false);
+  lightAll(['rt1','rt2','rt3','rt4'], 'on', false);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
    THE TOUR
+
+   Every step puts its own scene on screen and sets its own state. The step
+   dots let a viewer jump anywhere, so no step may assume the one before it
+   has run.
    ══════════════════════════════════════════════════════════════════════════ */
 const TOUR = [
-  { text:'A customer asked for a feature. You think you understood them. This is how you check, before you build it.',
-    run: async()=>{ resetMockup(); await typeTo(2, 40); await spotReveal(['#termwrap'], 10); } },
+  { text:'Three times in every project you have to show somebody something that does not exist yet.',
+    run: async()=>{ await toScene('scWhy');
+                    await spotReveal(['.headline'], 14); } },
 
-  { text:'You invoke the skill. It asks for two things, and only two things.',
-    run: async()=>{ await typeTo(8, 34); await spotReveal(['#term'], 10); } },
+  { text:'A spec, before anyone writes the code. A pitch, before there is a product. Or a feature you shipped that nobody has noticed.',
+    run: async()=>{ await toScene('scWhy'); spotOff();
+                    await lightInTurn(['cWhy1','cWhy2','cWhy3'], 'lit', 520);
+                    await spotReveal(['.cards'], 16); } },
 
-  { text:'The codebase the feature belongs to, and what the feature should do. That is the entire input.',
-    run: async()=>{ await typeTo(12, 26); await spotReveal(['#term'], 10); } },
+  { text:'Every one of them wants a video. And nobody has two days to make a video.',
+    run: async()=>{ await toScene('scWhy'); spotOff();
+                    lightAll(['cWhy1','cWhy2','cWhy3'], 'lit', true);
+                    $('whyVerdict').classList.add('on');
+                    await sleep(260); await spotReveal(['#whyVerdict'], 14); } },
 
-  { text:'Now it reads the codebase — not for the logic, but for the look. This is the step that makes the difference.',
-    run: async()=>{ await typeTo(14, 30); await spotReveal(['#files'], 10); } },
+  { text:'So you point a language model at your code instead, and you tell it which features matter.',
+    run: async()=>{ await toScene('scAsk'); spotOff();
+                    await typeTo(8, 150); await spotReveal(['#term'], 12); } },
 
-  { text:'The theme file, for the real colours and spacing. It never invents a palette.',
-    run: async()=>{ markRead('theme'); await typeTo(15, 30);
-                    await sleep(180); await spotReveal(['.frow[data-i="1"]'], 6); } },
+  { text:'The path to the repository, and the features in your own words. That is the whole input.',
+    run: async()=>{ await toScene('scAsk'); spotOff();
+                    await typeTo(T.length, 190); await spotReveal(['#term'], 12); } },
 
-  { text:'The shared components, for how a table and a status pill are actually drawn in this product.',
-    run: async()=>{ markRead('comp'); await typeTo(17, 30);
-                    await sleep(180); await spotReveal(['.frow[data-i="3"]','.frow[data-i="4"]'], 6); } },
+  { text:'It reads the repository for the look of your product. Not the logic. The look.',
+    run: async()=>{ await toScene('scRead'); spotOff();
+                    await lightInTurn(['rd1','rd2','rd3','rd4'], 'lit', 420);
+                    await spotReveal(['.reads'], 16); } },
 
-  { text:'The schema and the language file, for the words. Your customer says claims and adjusters, so the mockup says claims and adjusters.',
-    run: async()=>{ markRead('vocab'); await typeTo(20, 30);
-                    await sleep(180); await spotReveal(['.frow[data-i="5"]','.frow[data-i="6"]'], 6); } },
+  { text:'Your real colours, your real component shapes, your real field names, and the words your users already read on the screen.',
+    run: async()=>{ await toScene('scRead'); spotOff();
+                    lightAll(['rd1','rd2','rd3','rd4'], 'lit', true);
+                    await spotReveal(['#readNote'], 14); } },
 
-  { text:'Then it stops and says back what it understood — the style it found, and the feature it thinks you described.',
-    run: async()=>{ await typeTo(35, 17); await spotReveal(['#term'], 10); } },
+  { text:'What comes out is one file.',
+    run: async()=>{ await toScene('scFile'); spotOff();
+                    await sleep(180); await spotReveal(['.filecard'], 16); } },
 
-  { text:'It waits there. One message, and you catch a misunderstanding before a single file is written.',
-    run: async()=>{ await typeTo(38, 24); await spotReveal(['#term'], 10); } },
+  { text:'No build step. No server. No dependencies. Nothing fetched from anywhere while it runs.',
+    run: async()=>{ await toScene('scFile'); spotOff();
+                    await lightInTurn(['ch1','ch2','ch3','ch4'], 'on', 330);
+                    await spotReveal(['.chips'], 14); } },
 
-  { text:'Only then does it build. One HTML file — no build step, no dependencies, no server, nothing fetched.',
-    run: async()=>{ await typeTo(T.length, 22);
-                    $('outName').textContent = 'stale-claims-walkthrough.html';
-                    $('outSize').textContent = '84 KB';
-                    await spotReveal(['#outwrap'], 10); } },
+  { text:'Which means it plays on a plane with the wifi off, on a phone from an email, and in a hundred years, because it is only HTML.',
+    run: async()=>{ await toScene('scWhere'); spotOff();
+                    await lightInTurn(['rg1','rg2','rg3'], 'lit', 560);
+                    await spotReveal(['.rigs'], 16); } },
 
-  { text:'You send that one file. They double-click it. It opens with what we think we heard.',
-    run: async()=>{ $('outEmpty').style.opacity='0'; $('mini').classList.add('on');
-                    await sleep(340); $('miniIntro').classList.add('on');
-                    await sleep(260); await spotReveal(['#outbody'], 10); } },
+  { text:'Send it to somebody and it plays itself. A caption appears, and the light moves to the part of the screen being described.',
+    run: async()=>{ await toScene('scPlayer'); spotOff();
+                    $('pcap').classList.add('on'); $('co1').classList.add('on');
+                    await sleep(420); pspot(26, 92, 640, 46);
+                    await sleep(420); $('co2').classList.add('on');
+                    await spotReveal(['#player'], 14); } },
 
-  { text:'Then it plays itself. A caption, a spotlight, and the screen actually moving — not a screenshot with a label on it.',
-    run: async()=>{ $('miniIntro').classList.remove('on'); await sleep(420);
-                    miniCaption('Claims nobody has touched in five days.'); miniDots(1, 4);
-                    await sleep(420); miniFlagged = true; renderMini();
-                    await sleep(220); miniSpotOn('#miniRows', 3);
-                    await spotReveal(['#outbody'], 10); } },
+  { text:'It reads itself aloud, in a voice already on the machine, so the narration works offline too. They can change the speed, mute it, or set the volume.',
+    run: async()=>{ await toScene('scPlayer'); spotOff();
+                    $('pcap').classList.add('on'); pspot(26, 92, 640, 46);
+                    lightAll(['co1','co2'], 'on', true);
+                    $('co3').classList.add('on'); $('co4').classList.add('on');
+                    await lightInTurn(['pbVoice','pbSpeed','pbMute'], 'hot', 460);
+                    await spotReveal(['.pbar'], 12); } },
 
-  { text:'Every step is one idea, in your customer\'s own words, about their own screen.',
-    run: async()=>{ miniCaption('Two of them are yours, and they have gone quiet.'); miniDots(2, 4);
-                    await sleep(300); miniSpotOn('#miniRows', 3);
-                    await spotReveal(['#outbody'], 10); } },
+  { text:'At the end it asks them the only question that matters, and it hands them four ways to answer.',
+    run: async()=>{ await toScene('scAnswer'); spotOff();
+                    lightAll(['rt1','rt2','rt3','rt4'], 'on', false);
+                    await sleep(320); $('pk1').classList.add('on');
+                    await spotReveal(['.picks'], 14); } },
 
-  { text:'And at the end it asks the only question that matters, inside the file, where they are already looking.',
-    run: async()=>{ miniCaption(''); miniSpotOff(); $('miniBar').classList.remove('on');
-                    await sleep(300); $('miniReview').classList.add('on');
-                    await sleep(500); $('mc1').classList.add('on');
-                    await spotReveal(['#outbody'], 10); } },
+  { text:'And it even gives you direct feedback from the person you sent it to. Plug it into your email, your Slack, or whatever you want.',
+    run: async()=>{ await toScene('scAnswer'); spotOff();
+                    $('pk1').classList.add('on');
+                    await lightInTurn(['rt1','rt2','rt3','rt4'], 'on', 330);
+                    await spotReveal(['.routes'], 14); } },
 
-  { text:'Their answer comes back before you wrote a line of the feature. That is the whole idea. Does this make sense?',
-    run: async()=>{ spotOff(); } },
+  { text:'And all of it lands before you built any of it. One command, and the video makes itself.',
+    run: async()=>{ await toScene('scEnd'); spotOff();
+                    await sleep(260); await spotReveal(['.cmd'], 16); } },
 ];
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -759,6 +882,7 @@ async function spotReveal(selectors, pad){
   const el = $('spot'), pill = $('narration');
   const target = computeRect(selectors, pad);
   if(!target){ spotOff(); return; }
+  placeNarration(target);
   const p = pill.getBoundingClientRect();
   el.classList.add('no-anim');
   el.style.borderRadius = '999px';
@@ -773,6 +897,84 @@ async function spotReveal(selectors, pad){
   el.style.width = target.width+'px'; el.style.height = target.height+'px';
 }
 function spotOff(){ spotTargets = null; $('spot').classList.remove('on'); }
+
+/* The caption must never cover the thing it is describing. Put it on whichever
+   side of the subject has more room; the position is not transitioned, so the
+   rect read straight afterwards is the real one. */
+function placeNarration(target){
+  const pill = $('narration');
+  if(!target){ pill.classList.remove('low'); return; }
+  const above = target.top;
+  const below = window.innerHeight - (target.top + target.height);
+  pill.classList.toggle('low', below > above);
+}
+
+/* ─── Voice, speed, mute and volume ────────────────────────────────────────
+   The narration is read by the browser's own speech engine, using a voice
+   already installed on the machine. That keeps the promise the rest of this
+   file makes: it still speaks on a plane with the wifi off, and nothing is
+   ever fetched. Speed scales the step timing and the speaking rate together
+   so the two cannot drift apart. */
+const SPEEDS = [1, 1.5, 2, 0.75];
+let speedIx = 0, voiceOn = false, muted = false, volume = .6;
+const speed = () => SPEEDS[speedIx];
+const CAN_SPEAK = typeof window !== 'undefined' && 'speechSynthesis' in window
+                  && typeof SpeechSynthesisUtterance === 'function';
+const audible = () => voiceOn && !muted && volume > 0 && CAN_SPEAK;
+
+/* Chrome fills the voice list asynchronously, so ask now and again on the
+   event, and keep whatever was found. */
+let voiceCache = null;
+function pickVoice(){
+  if(!CAN_SPEAK) return null;
+  if(voiceCache) return voiceCache;
+  let all = [];
+  try{ all = speechSynthesis.getVoices() || []; }catch(e){ return null; }
+  const en = all.filter(v => /^en(-|_|$)/i.test(v.lang || ''));
+  if(!en.length) return null;
+  const preferred = ['Samantha','Serena','Allison','Karen','Daniel',
+                     'Google US English','Microsoft Aria','Microsoft Jenny','Microsoft Guy'];
+  for(const name of preferred){
+    const hit = en.find(v => (v.name || '').indexOf(name) !== -1);
+    if(hit){ voiceCache = hit; return hit; }
+  }
+  const better = en.find(v => /premium|enhanced|natural|neural/i.test(v.name || ''));
+  voiceCache = better || en.find(v => v.localService) || en[0];
+  return voiceCache;
+}
+if(CAN_SPEAK){
+  try{
+    speechSynthesis.getVoices();
+    speechSynthesis.addEventListener('voiceschanged', ()=>{ voiceCache = null; pickVoice(); });
+  }catch(e){}
+  window.addEventListener('beforeunload', ()=>{ try{ speechSynthesis.cancel(); }catch(e){} });
+}
+
+function stopSpeech(){ if(CAN_SPEAK){ try{ speechSynthesis.cancel(); }catch(e){} } }
+
+/* Resolves when the sentence has been read, so the tour waits for the voice
+   instead of guessing at it. Resolves at once when there is nothing to hear,
+   and can never hang: a worst-case timer always releases it. */
+function speak(text){
+  if(!audible() || !text) return Promise.resolve(false);
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = ok => { if(settled) return; settled = true; resolve(ok); };
+    try{
+      stopSpeech();
+      const said = String(text).replace(/\s+/g, ' ').trim();
+      const u = new SpeechSynthesisUtterance(said);
+      const v = pickVoice(); if(v) u.voice = v;
+      u.rate = Math.min(2.4, 1.02 * speed());
+      u.pitch = 1;
+      u.volume = volume;
+      u.onend = () => finish(true);
+      u.onerror = () => finish(false);
+      speechSynthesis.speak(u);
+      setTimeout(() => finish(false), 1400 + (said.length * 95) / speed());
+    }catch(e){ finish(false); }
+  });
+}
 
 async function hold(ms, token){
   let waited=0;
@@ -795,6 +997,16 @@ function updateTourUI(){
   $('tourPrev').disabled = currentStep <= 0;
   $('tourNext').disabled = currentStep >= TOUR.length-1;
   $('tourToggle').textContent = (tourAuto && !tourPaused) ? 'Pause' : 'Play';
+  $('tourSpeed').textContent = speed() + '\u00d7';
+  $('tourVoice').textContent = voiceOn ? 'Voice Is On' : 'Voice Is Off';
+  $('tourVoice').classList.toggle('on', voiceOn);
+  $('tourVoice').style.display = CAN_SPEAK ? '' : 'none';
+  /* Mute and volume only exist while there is something to hear. */
+  $('tourMute').hidden = !(CAN_SPEAK && voiceOn);
+  $('tourVol').hidden  = !(CAN_SPEAK && voiceOn);
+  $('tourMute').textContent = muted ? '\uD83D\uDD07' : '\uD83D\uDD0A';
+  $('tourMute').title = muted ? 'Unmute the narration' : 'Mute the narration';
+  $('tourMute').classList.toggle('on', muted);
 }
 
 async function playFrom(i, auto){
@@ -809,20 +1021,28 @@ async function playFrom(i, auto){
       currentStep = k; updateTourUI();
       spotOff();
       narrate(TOUR[k].text, k+1, TOUR.length);
-      await hold(1000, token);
+      const spoken = speak(TOUR[k].text);
+      await hold(Math.round(900 / speed()), token);
       await TOUR[k].run();
       if(token!==tourToken) return;
       if(!auto){ tourAuto=false; updateTourUI(); return; }
-      await hold(TOUR[k].text.length > 95 ? 3400 : 2600, token);
+      if(audible()){
+        await spoken;                                   // let the sentence finish
+        if(token!==tourToken) return;
+        await hold(Math.round(620 / speed()), token);
+      } else {
+        await hold(Math.round((TOUR[k].text.length > 95 ? 3400 : 2600) / speed()), token);
+      }
     }
     if(token!==tourToken) return;
-    hideNarration(); spotOff();
+    hideNarration(); spotOff(); stopSpeech();
     tourAuto=false; updateTourUI();
-    openApproval();
+    /* This one does not ask for sign-off at the end. The Give feedback
+       button is still there for anyone who wants to say something. */
   }catch(e){ /* superseded */ }
 }
 const runTour = () => playFrom(0, true);
-function stopTour(){ ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
+function stopTour(){ stopSpeech(); ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
 
 $('tourPrev').addEventListener('click', ()=>{ if(currentStep>0) playFrom(currentStep-1, false); });
 $('tourNext').addEventListener('click', ()=>{ if(currentStep<TOUR.length-1) playFrom(currentStep+1, false); });
@@ -831,8 +1051,50 @@ $('tourDots').addEventListener('click', e=>{
   playFrom(parseInt(d.dataset.step,10), false);
 });
 $('tourToggle').addEventListener('click',()=>{
-  if(tourAuto){ tourPaused = !tourPaused; updateTourUI(); }
+  if(tourAuto){
+    tourPaused = !tourPaused;
+    if(CAN_SPEAK){ try{ tourPaused ? speechSynthesis.pause() : speechSynthesis.resume(); }catch(e){} }
+    updateTourUI();
+  }
   else { playFrom(Math.min(currentStep+1, TOUR.length-1), true); }
+});
+/* Speed applies from the next sentence, so the current one is not cut off. */
+$('tourSpeed').addEventListener('click',()=>{
+  speedIx = (speedIx + 1) % SPEEDS.length;
+  updateTourUI();
+});
+/* Turning the voice on re-reads the step you are looking at, so the button
+   proves it worked instead of staying silent until the next one. */
+/* iOS and Safari only allow speech that begins inside the tap itself, and
+   they stay unlocked for the rest of the session once one utterance has been
+   started that way. So this handler speaks straight away, synchronously,
+   rather than waiting for the next step to come round. */
+$('tourVoice').addEventListener('click',()=>{
+  voiceOn = !voiceOn;
+  if(voiceOn && muted) muted = false;
+  updateTourUI();
+  if(!voiceOn){ stopSpeech(); return; }
+  const line = TOUR[currentStep] ? TOUR[currentStep].text : 'Voice on.';
+  speak(line);
+});
+/* Mute silences it now; the tour then paces itself the way it does in
+   silence, and unmuting picks the voice up at the next step. */
+$('tourMute').addEventListener('click',()=>{
+  muted = !muted;
+  updateTourUI();
+  if(muted){ stopSpeech(); return; }
+  if(TOUR[currentStep]) speak(TOUR[currentStep].text);
+});
+/* Dragging to zero is a mute. The new level is heard on release rather than
+   on every pixel of the drag. */
+$('tourVol').addEventListener('input', e=>{
+  volume = Math.max(0, Math.min(1, Number(e.target.value) / 100));
+  if(volume > 0 && muted) muted = false;
+  if(volume === 0) stopSpeech();
+  updateTourUI();
+});
+$('tourVol').addEventListener('change', ()=>{
+  if(audible() && TOUR[currentStep]) speak(TOUR[currentStep].text);
 });
 $('tourReplay').addEventListener('click',()=>{ resetMockup(); playFrom(0, true); });
 const toFeedback = ()=>{ stopTour(); hideNarration(); spotOff(); openApproval(); };
@@ -841,7 +1103,7 @@ $('reviewBtn').addEventListener('click', toFeedback);
 window.addEventListener('resize', applySpot);
 
 let decision=null;
-function openApproval(){ $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
+function openApproval(){ stopSpeech(); $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
 function closeApproval(){ $('apOverlay').classList.remove('on'); }
 
 $('apChoices').addEventListener('click', e=>{
@@ -932,7 +1194,7 @@ async function showHero(){
   const tick=setInterval(()=>{ n--; $('heroCount').textContent=Math.max(0,n); }, 1000);
   await new Promise(res=>{
     let done=false;
-    const go=()=>{ if(done) return; done=true; clearInterval(tick); res(); };
+    const go=()=>{ if(done) return; done=true; clearInterval(tick); updateTourUI(); res(); };
     $('heroStart').addEventListener('click', go, { once:true });
     h.addEventListener('click', e=>{ if(e.target===h) go(); });
     setTimeout(go, 7400);
