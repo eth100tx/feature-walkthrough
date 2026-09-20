@@ -646,7 +646,13 @@
 <div id="hero">
   <div class="hero-card">
     <div class="hero-brand">
-      <img id="heroLogo" alt="Meridian Specialty" />
+      <span class="brand-word">MERIDIAN</span>
+      <svg class="platform-mark" width="46" height="22" viewBox="0 0 46 22" fill="none"
+           stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 2 H2 V20 H6" /><path d="M40 2 H44 V20 H40" />
+        <path d="M12 5 V17 M18 5 V17 M24 5 V17 M30 5 V17 M34 5 V17" />
+      </svg>
+      <img id="heroLogo" alt="" style="display:none" />
       <span class="eyebrow">Meridian Specialty · Underwriter Alerts</span>
     </div>
     <h1>Your team has requested alterations to the application.</h1>
@@ -1578,6 +1584,16 @@ async function showHero(){
 }
 
 loadSettings(); syncSettingsPanel(); renderTable(); renderStack(); updateTourUI();
+/* A logo with no src renders as a broken-image icon, which on a page that
+   promises to fetch nothing is the worst possible first impression. If there
+   is nothing to show, show nothing. */
+(function(){
+  const logo = $('heroLogo');
+  if(!logo) return;
+  if(!logo.getAttribute('src')){ logo.style.display = 'none'; return; }
+  logo.addEventListener('error', ()=>{ logo.style.display = 'none'; });
+})();
+
 showHero().then(runTour);
 </script>
 </body>

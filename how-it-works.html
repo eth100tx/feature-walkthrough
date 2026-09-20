@@ -1268,6 +1268,16 @@ async function showHero(){
 }
 
 resetMockup(); updateTourUI();
+/* A logo with no src renders as a broken-image icon, which on a page that
+   promises to fetch nothing is the worst possible first impression. If there
+   is nothing to show, show nothing. */
+(function(){
+  const logo = $('heroLogo');
+  if(!logo) return;
+  if(!logo.getAttribute('src')){ logo.style.display = 'none'; return; }
+  logo.addEventListener('error', ()=>{ logo.style.display = 'none'; });
+})();
+
 showHero().then(runTour);
 </script>
 </body>
