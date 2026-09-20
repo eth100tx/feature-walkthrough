@@ -28,18 +28,39 @@ An hour of work to find out you misheard, instead of three weeks.
 A page that opens with a card saying "this is what we think we heard", then plays
 itself:
 
-- a caption appears at the top, one idea at a time
+- a caption appears, one idea at a time, and moves to whichever side of the
+  highlighted area has room rather than covering the thing it describes
 - a spotlight grows out of the caption onto the exact element being described,
   dimming everything else
 - the screen actually moves — lists filter, panels open, settings cycle through real
   values and the numbers change while you watch
-- the viewer can pause, step, jump to any point, or replay
+- **it reads itself aloud**, using a voice already installed on the viewer's
+  machine, so the narration works with the network off like the rest of the file
+- the viewer can pause, step, jump to any point, replay, change the speed
+  (1×, 1.5×, 2×, 0.75×), turn the voice on or off, mute it, or set the volume
 - at the end it asks: does this look right? Their answer comes back as copyable
-  text, a downloadable file, or a pre-filled email
+  text, a downloadable file, a pre-filled email, or a message straight into your
+  Slack — you set that up once and the file carries it
 
 The screen is not a generic template. The skill reads the target codebase for its
 real theme values, its real component shapes and its real domain vocabulary, so it
 looks like the customer's own product and speaks in their own words.
+
+### About the voice
+
+The narration is spoken by the browser's own speech engine, so nothing is
+embedded and nothing is fetched. What that means in practice:
+
+| Where it opens | Voice |
+| --- | --- |
+| macOS, Windows | Works offline. Quality depends on the voices installed; an Enhanced or Premium voice sounds far better than the default compact one. |
+| iPhone, Android, ChromeOS | Works. |
+| Linux | Usually silent — desktop browsers there have no speech engine unless `speech-dispatcher` and `espeak` are installed. |
+
+Browsers refuse to play audio until the viewer has interacted with the page, so
+the walkthrough starts silent and the **Voice Is Off** button turns it on. That
+press is also what unlocks audio on iPhone and Safari, which is why the button
+begins speaking inside the tap itself.
 
 ## Install
 
@@ -129,16 +150,18 @@ contains no real approval record or claimed customer result. The renderer uses o
 the Python standard library, escapes supplied markup and keeps evidence type and
 data origin separate. It does not generate audio or interactive product screens.
 
-## Try it first
+## See it before you install anything
 
-Open `how-it-works.html` in a browser. It explains this skill, using this skill:
-a walkthrough of what actually happens when you invoke it, start to finish. It was
-built with the template in this repository.
+**[How it works](https://jaymenna.github.io/feature-walkthrough/how-it-works.html)**
+— this skill, explained using this skill. A walkthrough of what actually happens
+when you invoke it, start to finish. About ninety seconds.
 
-Then open `example/expiring-quotes-walkthrough.html`, a complete walkthrough of a
-real feature — an alert system for an insurance underwriting platform. It takes
-about a minute to play, and `example/README.md` explains why it is built the way
-it is.
+**[A finished walkthrough](https://jaymenna.github.io/feature-walkthrough/example/expiring-quotes-walkthrough.html)**
+— what the skill produces for a real feature: an alert system for an insurance
+underwriting platform. About a minute. `example/README.md` explains why it is
+built the way it is.
+
+Both play themselves in the browser. Neither needs anything installed.
 
 ## What is in here
 
