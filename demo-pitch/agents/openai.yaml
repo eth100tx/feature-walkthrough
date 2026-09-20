@@ -1,0 +1,4 @@
+interface:
+  display_name: "Demo Pitch"
+  short_description: "Show the problem, prove the solution, earn a next step"
+  default_prompt: "Use $demo-pitch to create a problem-first product demo with visible proof and directed narration."

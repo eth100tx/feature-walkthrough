@@ -1,0 +1,33 @@
+{
+  "title": "Example product pitch",
+  "audience": "The person making the decision",
+  "decision": "The specific next step the viewer is considering",
+  "premise": "Who encounters what problem, and why it matters",
+  "status": "Planning example; replace with the actual evidence baseline",
+  "beats": [
+    {
+      "id": "problem",
+      "section": "core",
+      "headline": "A recognizable problem",
+      "speech": "Describe a concrete situation in the viewer's words.",
+      "visual": "Specify the visible situation, not just a generic illustration.",
+      "proof": "What this scene establishes and what it cannot establish.",
+      "evidence_type": "planned",
+      "source": "Replace with a provided source or explicitly recorded assumption.",
+      "delivery": "Conversational; pause after the consequence.",
+      "data_provenance": "Fictional illustrative records; no real customer data or endorsement."
+    },
+    {
+      "id": "outcome",
+      "section": "core",
+      "headline": "The desired result",
+      "speech": "Describe the useful result and why it matters.",
+      "visual": "Show the actual output or a clearly labeled proposed output.",
+      "proof": "Identify the claim supported by the visible evidence.",
+      "evidence_type": "planned",
+      "source": "Replace with a source for this outcome.",
+      "delivery": "More assured; leave time to read the output.",
+      "data_provenance": "Fictional illustrative records; no real customer data or endorsement."
+    }
+  ]
+}

@@ -61,6 +61,74 @@ Then in Claude Code:
 It will ask you for two things: the path to the codebase, and what the feature
 should do. That is all it needs.
 
+## Companion skill: demo-pitch
+
+A feature walkthrough asks whether the proposed behavior is right. The new
+[demo-pitch skill](demo-pitch/SKILL.md) helps a viewer recognize a problem, see the
+proposed solution, and understand why it matters. It recommends a concrete
+situation/problem/outcome/proof/next-step outline, iterates on the pitch goals with
+the user, and records agreement in `pitch-demo-brief.md` before production.
+
+Keep independent pitch-demo and feature-demo artifacts and approvals. The pitch
+skill includes [story guidance](demo-pitch/references/story-and-production.md),
+[narration direction](demo-pitch/references/narration.md),
+[research sources](demo-pitch/references/research.md), and a
+[fictional worked brief](demo-pitch/examples/pitch-demo-brief.md).
+Its optional JSON renderer makes an offline **planning storyboard**, not a product
+demo or video. Voice generation and recording use the tools available in the
+working project; no TTS service, video exporter or provider account is bundled.
+
+### Install the companion or both skills
+
+The original clone installation and `/feature-walkthrough` command above are
+unchanged. **Cloning alone does not install the companion as a separate skill.**
+To use only the new companion, copy this repository's `demo-pitch/`
+folder into your agent's skills directory.
+
+To export two independent folders with the parallel names `demo-features` and
+`demo-pitch`, run from this repository with Python 3:
+
+```bash
+python scripts/package_skills.py --out ../demo-skills
+```
+
+Copy the selected output folder(s) into `~/.claude/skills/` for Claude Code, or
+`~/.agents/skills/` for Codex. For a project, use `.claude/skills/` or
+`.agents/skills/`, respectively. See [Codex's official skill discovery and metadata
+documentation](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills).
+The new pitch skill includes optional `agents/openai.yaml` UI metadata; the feature
+export does not add vendor metadata to the original skill.
+
+The packager does not install anything, requires output outside the checkout, and
+refuses existing target folders. `demo-features` is an optional export name; it does not rename an existing
+`feature-walkthrough` installation. Install one feature name to avoid duplicate
+discovery. Use `--feature-name feature-walkthrough` to export the legacy name.
+
+Examples after installing the exported folders:
+
+```text
+/demo-features — show the proposed request form and collect behavior feedback
+/demo-pitch — show procurement coordinators how this concept addresses incomplete requests
+```
+
+Those are Claude Code invocations. In Codex, mention `$demo-features` or
+`$demo-pitch`, or select the skill through the skill picker.
+
+### Inspect the fictional planning example
+
+Open [the SupplyLane storyboard](demo-pitch/examples/supplylane-storyboard.html)
+offline, or regenerate it:
+
+```bash
+python demo-pitch/scripts/render_storyboard.py demo-pitch/examples/supplylane-storyboard.json /path/to/storyboard.html
+python -m unittest discover -s scripts -p "test_*.py" -v
+```
+
+All SupplyLane product behavior is proposed, all data is fictional, and the example
+contains no real approval record or claimed customer result. The renderer uses only
+the Python standard library, escapes supplied markup and keeps evidence type and
+data origin separate. It does not generate audio or interactive product screens.
+
 ## Try it first
 
 Open `how-it-works.html` in a browser. It explains this skill, using this skill:
