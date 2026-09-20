@@ -1,6 +1,6 @@
 ---
 name: demo-pitch
-description: Create a problem-and-solution product demo that persuades a buyer, investor, or stakeholder through visible proof and a clear next step. Use for demo pitches, product pitch videos, value-focused demos, or turning a feature tour into a compelling problem/solution story. Includes story selection, visual proof, expressive narration direction, and review. For feature behavior walkthroughs or design sign-off, use feature-walkthrough (or its demo-features export) instead.
+description: Create a value-led product demo that persuades a buyer, investor, or stakeholder through visible proof, professional narration, and a clear next step. Use for demo pitches, product pitch videos, or turning a feature tour into a compelling story. Includes audience framing, early voice selection, audio production, and review. For feature behavior walkthroughs or design sign-off, use feature-walkthrough (or its demo-features export) instead.
 ---
 
 # Demo pitch
@@ -17,11 +17,19 @@ Treat brief agreement as **Gate 1**. Record its status and the user's explicit a
 
 Use the conversation and supplied artifacts first. Identify whose product this is, the audience and their decision, concrete problem and current workaround, desired outcome, available product evidence, delivery format, approximate time budget, and next step. Record consequential assumptions. Present an unverified buyer problem as a hypothesis to test, not an observed fact; do not invent its frequency or duration to strengthen the opening. Requirements establish capabilities and constraints; they do not establish which problem should lead the pitch. Do not require a codebase when a working product, screenshots, or an adequately described concept is available.
 
+For a finished demo pitch, propose narration with captions by default; honor an explicit silent, live-presenter, planning-only, or script-only request. Read [narration](references/narration.md) during briefing and check the available voice path before promising a finished narrated artifact. Professional audio belongs in the first delivered version, not a later enhancement after the user complains. Include voice choice, sample/listening plan, and any real capability limit in the brief.
+
 Read available UI, theme, terminology, and relevant implementation before depicting them. Maintain a small claim ledger: claim, source, evidence type (observed / simulated / planned / measured), data provenance, limitation. A passing UI test proves UI behavior, not a functioning backend or customer outcome. An export action alone does not prove a particular field or audit entry exists in its output; inspect it. Use fictional data without implying customer endorsement. Keep source systems read-only unless changes are already authorized.
+
+A value-led opening still needs grounded claims. Do not add plausible domain behavior such as acceptance, attendance, automatic matching or meeting-time scheduling unless supported; describe the demonstrated output and intended benefit separately. Supplied fixture records alone do not establish observed working behavior.
 
 ## Choose the story before building scenes
 
-Read [story and production](references/story-and-production.md). Briefly consider alternative problem/solution angles and recommend the one best matched to this viewer's decision. Propose a filled-in outline using this research-informed default:
+Read [story and production](references/story-and-production.md). Briefly consider alternative problem/solution angles and recommend the one best matched to this viewer's decision.
+
+Lead with the audience's recurring job and a concrete value statement. An easy-to-demonstrate validation error is not evidence that exception handling is the buyer's main problem. Use conflicts and safeguards as supporting proof unless the user or research establishes them as the central value. Make the opening visual match this choice; changing the voiceover over an unchanged error screen is insufficient.
+
+Propose a filled-in outline using this research-informed default:
 
 1. **Situation / story:** a brief moment the audience recognizes; who is trying to get what done? This can be part of the problem sentence, not a long anecdote.
 2. **Problem and stakes:** what is difficult today, and why does it matter to this audience?
@@ -33,11 +41,9 @@ Fill the outline with actual candidate copy and proof moments; do not hand the u
 
 Alongside the outline, make the proposed **pitch goals** explicit: who is watching; the one problem to own; what the viewer should understand or believe afterward; what visible evidence supports that belief; what action they should take; time/format and claim limits. State assumptions and invite corrections on these goals and the outline. Iterate until they are tight and agreed **before building detailed scenes, animation, or recording**. This is a story discussion, not a generic permission request.
 
-Do not treat agreement on requirements, a feature walkthrough, or a prior unrelated pitch as agreement on this story. If the user has already endorsed the current pitch brief, continue without asking again. If they explicitly delegate the story choice and ask you to proceed without iteration, record that direction and the assumptions. Research, evidence inspection, and lightweight alternative outlines can continue while story feedback is pending; dependent production should wait. Record the agreed brief and what was cut. If adapting a tour, reorder and delete scenes; changing the introduction alone is insufficient.
+Agreement means endorsement of this framing or an instruction to proceed with it; requirements approval, a prior unrelated pitch, silence and elapsed time do not count. If the user already endorsed the story or explicitly delegated its choice, record that direction and continue without another approval question. While agreement is pending, continue research and lightweight outlines but wait on dependent production. If the user supplies a clear replacement direction and requests the revision, update the brief and proceed; ask only when the new direction is unclear. Record what was cut. If adapting a tour, reorder and delete scenes; changing the introduction alone is insufficient.
 
-Agreement means a clear endorsement of this framing or an instruction to proceed with it; silence, elapsed time, and agreement on skill names are not story agreement. If later feedback materially changes the audience, central problem, promise, or scope, revisit the brief before resuming dependent production. Keep pre-agreement work lightweight unless the user requested deeper research; avoid building enough speculative material that it anchors the discussion.
-
-Start with a clear problem statement: who encounters what friction, in what situation, with what consequence. Then show a concrete desired result early. Demonstrate the smallest meaningful sequence that explains how the result happens. Address a material objection when it affects credibility. Close the original problem and give one relevant next step. Treat this as a flexible story shape, not a mandatory scene count or fixed duration.
+Start with recognizable work and the useful outcome: who needs to accomplish what, and why bringing the process together matters. Establish relevant friction without manufacturing drama. Show a concrete desired result early, then the smallest meaningful sequence that explains how it happens. Address a material objection when it affects credibility. Close the original job and give one relevant next step. Treat this as a flexible story shape, not a mandatory scene count or fixed duration.
 
 For each proof beat specify: viewer question, visible action/change, evidence, spoken line, short screen headline, and resulting business meaning. A list of benefits, animated text, or an unexplained dashboard is not product proof. Shortcuts and time jumps must not imply nonexistent speed or skipped approvals.
 
@@ -45,7 +51,7 @@ For multiple roles, identify the primary and secondary customers and the value e
 
 ## Produce the requested artifact
 
-Read [narration](references/narration.md) when speech or video is involved. Use [research](references/research.md) for rationale or alternative structures; it distinguishes expert advice from our production heuristics.
+For narrated work, select and assess a short voice sample after story agreement and before generating the full track or locking visual timings; follow [narration](references/narration.md). This is a production quality check, not an extra user-approval gate. Use [research](references/research.md) for rationale or alternative structures; it distinguishes expert advice from our production heuristics.
 
 Create a compact brief, a storyboard with claim sources, and the requested demo. If the user requests only a skill, strategy, or script, do not expand that into an unsolicited full video. For an actual demo request, a script alone is not completion: build a working self-playing HTML demo or record the relevant product path, and export video when requested and the tools are available. Use existing app components or construct a faithful standalone representation; do not change the target app merely to film it.
 
@@ -59,4 +65,4 @@ The [fictional SupplyLane brief](examples/pitch-demo-brief.md) illustrates the s
 
 Use [review criteria](references/review.md). Obtain an independent critique when requested or required by the workspace; provide the brief and evidence, not instructions to agree. Resolve load-bearing findings yourself. Test the chosen story against a skeptical viewer: can they state the problem, the visible difference, why to believe it, and the next step?
 
-Verify whatever you actually produced: visual readability, state continuity, accurate role/version labels, play/pause/replay and scene jumps for HTML; full playback, audio/visual sync, pronunciation, caption accuracy and audible delivery for video. Review once muted and once audio-only where applicable. Report what was tested and what remains unverified. Link the final artifacts and disclose implementation or production limitations succinctly.
+Verify whatever you actually produced: visual readability, state continuity, accurate role/version labels, play/pause/replay and scene jumps for HTML. For all narrated formats, including HTML, check full playback, audio/visual sync, pronunciation, caption accuracy and audible delivery. Review once muted and once audio-only where listening is available. Follow the narration guide's explicit fallback when it is not; successful decoding and an unmuted player do not prove professional delivery. Report what was tested and what remains unverified. Link the final artifacts and disclose implementation or production limitations succinctly.

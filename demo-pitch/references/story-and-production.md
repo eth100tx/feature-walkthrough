@@ -2,6 +2,8 @@
 
 ## The default outline to propose
 
+Choose the opening from the audience's work, not the most dramatic seeded record. First describe what they need to get done and what a useful finished result looks like. In a shared process, name what each role gains before following their handoff. A conflict can prove a safeguard later without becoming the entire reason to adopt the product. If exception resolution really is the user's stated central problem, let it lead.
+
 | Part | What the author proposes to the user | What makes it work |
 | --- | --- | --- |
 | Situation / story | A specific person, job and recognizable moment | Quickly establishes relevance; can fit in the problem sentence. |
@@ -12,7 +14,7 @@
 
 This is the skill's synthesis of the cited practitioner guidance, not a universal formula. Recommend and fill in this outline before producing scenes. For a short pitch, combine situation/problem and payoff/CTA. For a technical audience, allow more proof. The story provides context for the problem; it must not delay a clear problem statement behind a long personal anecdote or company history.
 
-Pair the outline with a small goals card: **audience; primary problem; desired belief or understanding; proof; desired action; runtime/format; claim boundaries.** Iterate both with the user. Their feedback may change the angle or goal even when the product requirements remain unchanged. Record the agreed version, then build from it.
+Pair the outline with a small goals card: **audience; recurring job and relevant friction; desired belief or understanding; proof; desired action; runtime/format; voice and listening plan for narrated work; claim boundaries.** Iterate both with the user. Their feedback may change the angle or goal even when the product requirements remain unchanged. Record the agreed version, then build from it.
 
 ## A compact working brief
 
@@ -22,7 +24,7 @@ Capture audience, decision, situation, current workaround, consequence, desired 
 
 Develop this with the user. Start with their business problem, recommend a short opening and proof sequence, and invite correction. Record the brief as draft until the user agrees with the story. Agreement on product requirements does not settle a pitch: a detailed audit requirement may be important implementation evidence while repeated back-and-forth over incomplete requests is the reason the buyer cares. Do not build a detailed storyboard or produce media first and use its polish to steer the user toward an unagreed angle.
 
-If feedback changes the central problem, return to the brief and reconsider scene selection. Preserve previous candidates only as clearly superseded drafts. Resume production from the agreed story; do not repeatedly request agreement after it has already been given.
+If feedback changes the central problem, update the brief and reconsider scene selection. When the user supplies a clear replacement direction and asks for the revision, that instruction is the agreement; do not ask them to approve it again. Preserve previous candidates only as clearly superseded drafts. Resume production from the agreed story.
 
 The one-sentence spine is: “For [person doing job], [problem] makes [consequence]; [approach] enables [specific outcome] through [demonstrable mechanism].” Rewrite into natural language before narration. A sentence full of abstract benefits is a signal to find a more concrete job.
 
@@ -39,7 +41,7 @@ The storyboard records behavior in `evidence_type` and data origin separately in
 
 ## Build belief through a causal path
 
-1. Make the problem recognizable without a company-history preamble.
+1. Make the shared job and its value recognizable without a company-history preamble.
 2. Orient the viewer to a specific useful result. An early peek at the ending is fine; label a rewind when returning to earlier states.
 3. Show the important transition that produces the result. Before → action → after must be visible. Skip typing and navigation that prove nothing, but preserve decisions and dependencies that matter.
 4. Resolve the strongest relevant doubt with evidence. Do not run a laundry list of exception handling merely to appear thorough.

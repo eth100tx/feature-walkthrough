@@ -78,6 +78,13 @@ Its optional JSON renderer makes an offline **planning storyboard**, not a produ
 demo or video. Voice generation and recording use the tools available in the
 working project; no TTS service, video exporter or provider account is bundled.
 
+Finished pitches default to narration with captions, with voice selection and a
+representative sample before full production. The opening leads with the audience's
+work and desired outcome; exceptions support that story when relevant. The audio
+guide covers conversational voice candidates, listening checks, cache invalidation
+and measured timing. If audio cannot be heard in the agent's environment, it must
+report listening review as pending rather than claim professional quality was verified.
+
 ### Install the companion or both skills
 
 The original clone installation and `/feature-walkthrough` command above are
