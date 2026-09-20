@@ -98,7 +98,8 @@ html, body {
    whole screen around it, so whatever sits inside the hole stays fully lit. */
 #spot {
   position: fixed; z-index: 1150; border-radius: 10px; pointer-events: none;
-  box-shadow: 0 0 0 9999px rgba(10,13,16,.66), 0 0 0 2px rgba(255,255,255,.6);
+  box-shadow: 0 0 0 9999px rgba(9,12,16,.55), 0 0 0 1px rgba(255,255,255,.30),
+              0 0 0 5px rgba(255,255,255,.10), 0 22px 60px rgba(0,0,0,.45);
   opacity: 0; top: 50%; left: 50%; width: 0; height: 0;
   transition: opacity .3s ease, top .5s cubic-bezier(.22,.9,.3,1),
               left .5s cubic-bezier(.22,.9,.3,1), width .5s cubic-bezier(.22,.9,.3,1),
@@ -109,21 +110,28 @@ html, body {
 
 /* ─── Narration pill ─── */
 .narration {
-  position: fixed; left: 50%; top: 78px; transform: translateX(-50%) translateY(-8px);
-  z-index: 1500; background: #1a1d1f; color: #fff; padding: 11px 20px; border-radius: 999px;
-  font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(16,24,40,.25);
+  position: fixed; left: 50%; top: 72px; transform: translateX(-50%) translateY(-8px);
+  z-index: 1500; background: rgba(16,19,22,.95); color: #fff; padding: 13px 22px;
+  border-radius: 14px; font-size: 14.5px; font-weight: 500; line-height: 1.45;
+  letter-spacing: -.1px;
+  box-shadow: 0 20px 48px rgba(9,12,16,.44), 0 0 0 1px rgba(255,255,255,.09);
   opacity: 0; pointer-events: none; transition: opacity .3s ease, transform .3s ease;
-  max-width: min(680px, calc(100vw - 60px)); text-align: center;
+  max-width: min(620px, calc(100vw - 60px)); text-align: left;
 }
+/* Flipped below the subject when the caption would otherwise cover it. */
+.narration.low { top: auto; bottom: 78px; }
 .narration.in { opacity: 1; transform: translateX(-50%) translateY(0); }
-.narration .step-n { display: inline-block; background: rgba(255,255,255,.16); border-radius: 999px;
-                     font-size: 10px; font-weight: 700; padding: 2px 7px; margin-right: 9px; }
+.narration .step-n { display: inline-block; background: rgba(255,255,255,.14);
+                     border-radius: 6px; font-size: 10.5px; font-weight: 700; padding: 3px 7px;
+                     margin-right: 11px; vertical-align: 1px; letter-spacing: .4px;
+                     color: rgba(255,255,255,.78); font-variant-numeric: tabular-nums; }
 
 /* ─── Transport bar ─── */
 .tour-bar {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 1500;
-  display: flex; align-items: center; gap: 6px; background: #1a1d1f; color: #fff;
-  border-radius: 999px; padding: 5px 6px 5px 14px; box-shadow: 0 10px 30px rgba(16,24,40,.28);
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 1500;
+  display: flex; align-items: center; gap: 6px; background: rgba(16,19,22,.95); color: #fff;
+  border-radius: 14px; padding: 7px 8px 7px 16px;
+  box-shadow: 0 20px 48px rgba(9,12,16,.44), 0 0 0 1px rgba(255,255,255,.09);
 }
 .tour-bar .dots { display: flex; gap: 4px; margin-right: 8px; }
 .tour-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.28);
@@ -133,15 +141,33 @@ html, body {
 .tour-bar .dot.on { background: #fff; transform: scale(1.35); }
 .tour-bar .step-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.65);
                         margin-right: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tour-bar button { font-family: inherit; font-size: 11px; font-weight: 600; border: none; cursor: pointer;
-                   border-radius: 999px; padding: 5px 12px; background: rgba(255,255,255,.14); color: #fff;
-                   white-space: nowrap; flex: none; width: auto; }
+.tour-bar button { font-family: inherit; font-size: 11.5px; font-weight: 600; border: none;
+                   cursor: pointer; border-radius: 8px; padding: 6px 13px;
+                   background: rgba(255,255,255,.12); color: #fff; white-space: nowrap;
+                   flex: none; width: auto; transition: background .15s ease; }
 .tour-bar button:hover { background: rgba(255,255,255,.26); }
-.tour-bar button.tnav { padding: 5px 10px; font-size: 10px; line-height: 1; }
+.tour-bar button.tnav { padding: 6px 10px; font-size: 10px; line-height: 1;
+                        background: rgba(255,255,255,.08); }
+.tour-bar { flex-wrap: wrap; justify-content: center; row-gap: 5px;
+            /* left:50% alone caps a fixed box at half the viewport, which wraps the
+               bar long before it needs to; max-content lets it size to its buttons. */
+            width: max-content; max-width: calc(100vw - 32px); }
+.tour-bar button.on { background: rgba(255,255,255,.30); }
+.tour-bar button.on:hover { background: rgba(255,255,255,.38); }
+.tour-bar button#tourSpeed { font-variant-numeric: tabular-nums; min-width: 44px; }
+.tour-bar button#tourMute { font-size: 12px; line-height: 1; padding: 6px 9px; }
+.tour-bar input[type=range] { -webkit-appearance: none; appearance: none; width: 64px; height: 4px;
+                              border-radius: 999px; background: rgba(255,255,255,.30); outline: none;
+                              cursor: pointer; flex: none; margin: 0 4px 0 2px; }
+.tour-bar input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+                              width: 11px; height: 11px; border-radius: 50%; background: #fff; cursor: pointer; }
+.tour-bar input[type=range]::-moz-range-thumb { width: 11px; height: 11px; border: none;
+                              border-radius: 50%; background: #fff; cursor: pointer; }
+.tour-bar input[type=range]:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,.30); }
 .tour-bar button:disabled { opacity: .3; cursor: default; }
 .tour-bar button:disabled:hover { background: rgba(255,255,255,.14); }
-.tour-bar button.go { background: #40c057; }
-.tour-bar button.go:hover { background: #37b24d; }
+.tour-bar button.go { background: #2f9e44; padding: 6px 15px; }
+.tour-bar button.go:hover { background: #2b8a3e; }
 
 /* ─── Intro card ─── */
 #hero {
@@ -226,12 +252,14 @@ html, body {
            white-space: pre-wrap; word-break: break-word; color: var(--ink-2);
            max-height: 200px; overflow-y: auto; }
 .ap-hintline { font-size: 11px; color: var(--dimmed); margin-top: 12px; line-height: 1.5; }
-.review-btn { position: fixed; top: 14px; right: 24px; z-index: 1250; background: #1a1d1f; color: #fff;
-              border: none; border-radius: 999px; font-family: inherit; font-size: 11.5px; font-weight: 700;
-              padding: 7px 15px; cursor: pointer; box-shadow: 0 4px 14px rgba(16,24,40,.22);
-              display: flex; align-items: center; gap: 7px; }
-.review-btn:hover { background: #000; }
-.review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #40c057; }
+.review-btn { position: fixed; top: 14px; right: 20px; z-index: 1250;
+              background: #fff; color: var(--ink-2);
+              border: 1px solid rgba(16,24,40,.22); border-radius: 10px; font-family: inherit;
+              font-size: 11.5px; font-weight: 600; padding: 7px 13px; cursor: pointer;
+              box-shadow: 0 1px 2px rgba(16,24,40,.10), 0 6px 18px rgba(16,24,40,.09);
+              display: flex; align-items: center; gap: 7px; transition: all .15s ease; }
+.review-btn:hover { background: #fff; color: var(--ink); border-color: rgba(16,24,40,.26); }
+.review-btn .g { width: 6px; height: 6px; border-radius: 50%; background: #2f9e44; }
 </style>
 </head>
 <body>
@@ -300,6 +328,11 @@ html, body {
   <button class="tnav" id="tourNext" title="Next step">&#9654;</button>
   <button id="tourToggle">Pause</button>
   <button id="tourReplay">Replay</button>
+  <button id="tourSpeed" title="Playback speed">1&times;</button>
+  <button id="tourVoice" title="Read the narration aloud">Voice Is Off</button>
+  <button id="tourMute" class="tnav" title="Mute the narration" hidden>&#128266;</button>
+  <input id="tourVol" type="range" min="0" max="100" step="5" value="60"
+         title="Narration volume" aria-label="Narration volume" hidden />
   <button class="go" id="tourFeedback">Give feedback</button>
 </div>
 
@@ -506,6 +539,7 @@ async function spotReveal(selectors, pad){
   const target = computeRect(selectors, pad);
   if(!target){ spotOff(); return; }
 
+  placeNarration(target);
   const p = pill.getBoundingClientRect();
   el.classList.add('no-anim');                 // snap to the caption, unanimated
   el.style.borderRadius = '999px';
@@ -522,7 +556,85 @@ async function spotReveal(selectors, pad){
 }
 function spotOff(){ spotTargets = null; $('spot').classList.remove('on'); }
 
+/* The caption must never cover the thing it is describing. Put it on whichever
+   side of the subject has more room; the position is not transitioned, so the
+   rect read straight afterwards is the real one. */
+function placeNarration(target){
+  const pill = $('narration');
+  if(!target){ pill.classList.remove('low'); return; }
+  const above = target.top;
+  const below = window.innerHeight - (target.top + target.height);
+  pill.classList.toggle('low', below > above);
+}
+
 /* A pause-aware wait that abandons itself if a newer jump supersedes it. */
+/* ─── Voice, speed, mute and volume ────────────────────────────────────────
+   The narration is read by the browser's own speech engine, using a voice
+   already installed on the machine. That keeps the promise the rest of this
+   file makes: it still speaks on a plane with the wifi off, and nothing is
+   ever fetched. Speed scales the step timing and the speaking rate together
+   so the two cannot drift apart. */
+const SPEEDS = [1, 1.5, 2, 0.75];
+let speedIx = 0, voiceOn = false, muted = false, volume = .6;
+const speed = () => SPEEDS[speedIx];
+const CAN_SPEAK = typeof window !== 'undefined' && 'speechSynthesis' in window
+                  && typeof SpeechSynthesisUtterance === 'function';
+const audible = () => voiceOn && !muted && volume > 0 && CAN_SPEAK;
+
+/* Chrome fills the voice list asynchronously, so ask now and again on the
+   event, and keep whatever was found. */
+let voiceCache = null;
+function pickVoice(){
+  if(!CAN_SPEAK) return null;
+  if(voiceCache) return voiceCache;
+  let all = [];
+  try{ all = speechSynthesis.getVoices() || []; }catch(e){ return null; }
+  const en = all.filter(v => /^en(-|_|$)/i.test(v.lang || ''));
+  if(!en.length) return null;
+  const preferred = ['Samantha','Serena','Allison','Karen','Daniel',
+                     'Google US English','Microsoft Aria','Microsoft Jenny','Microsoft Guy'];
+  for(const name of preferred){
+    const hit = en.find(v => (v.name || '').indexOf(name) !== -1);
+    if(hit){ voiceCache = hit; return hit; }
+  }
+  const better = en.find(v => /premium|enhanced|natural|neural/i.test(v.name || ''));
+  voiceCache = better || en.find(v => v.localService) || en[0];
+  return voiceCache;
+}
+if(CAN_SPEAK){
+  try{
+    speechSynthesis.getVoices();
+    speechSynthesis.addEventListener('voiceschanged', ()=>{ voiceCache = null; pickVoice(); });
+  }catch(e){}
+  window.addEventListener('beforeunload', ()=>{ try{ speechSynthesis.cancel(); }catch(e){} });
+}
+
+function stopSpeech(){ if(CAN_SPEAK){ try{ speechSynthesis.cancel(); }catch(e){} } }
+
+/* Resolves when the sentence has been read, so the tour waits for the voice
+   instead of guessing at it. Resolves at once when there is nothing to hear,
+   and can never hang: a worst-case timer always releases it. */
+function speak(text){
+  if(!audible() || !text) return Promise.resolve(false);
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = ok => { if(settled) return; settled = true; resolve(ok); };
+    try{
+      stopSpeech();
+      const said = String(text).replace(/\s+/g, ' ').trim();
+      const u = new SpeechSynthesisUtterance(said);
+      const v = pickVoice(); if(v) u.voice = v;
+      u.rate = Math.min(2.4, 1.02 * speed());
+      u.pitch = 1;
+      u.volume = volume;
+      u.onend = () => finish(true);
+      u.onerror = () => finish(false);
+      speechSynthesis.speak(u);
+      setTimeout(() => finish(false), 1400 + (said.length * 95) / speed());
+    }catch(e){ finish(false); }
+  });
+}
+
 async function hold(ms, token){
   let waited=0;
   while(waited<ms){
@@ -544,6 +656,16 @@ function updateTourUI(){
   $('tourPrev').disabled = currentStep <= 0;
   $('tourNext').disabled = currentStep >= TOUR.length-1;
   $('tourToggle').textContent = (tourAuto && !tourPaused) ? 'Pause' : 'Play';
+  $('tourSpeed').textContent = speed() + '\u00d7';
+  $('tourVoice').textContent = voiceOn ? 'Voice Is On' : 'Voice Is Off';
+  $('tourVoice').classList.toggle('on', voiceOn);
+  $('tourVoice').style.display = CAN_SPEAK ? '' : 'none';
+  /* Mute and volume only exist while there is something to hear. */
+  $('tourMute').hidden = !(CAN_SPEAK && voiceOn);
+  $('tourVol').hidden  = !(CAN_SPEAK && voiceOn);
+  $('tourMute').textContent = muted ? '\uD83D\uDD07' : '\uD83D\uDD0A';
+  $('tourMute').title = muted ? 'Unmute the narration' : 'Mute the narration';
+  $('tourMute').classList.toggle('on', muted);
 }
 
 /* One driver. Every jump bumps the token, so whatever step is mid-flight
@@ -557,11 +679,18 @@ async function playFrom(i, auto){
       currentStep = k; updateTourUI();
       spotOff();
       narrate(TOUR[k].text, k+1, TOUR.length);
-      await hold(1000, token);
+      const spoken = speak(TOUR[k].text);
+      await hold(Math.round(900 / speed()), token);
       await TOUR[k].run();
       if(token!==tourToken) return;
       if(!auto){ tourAuto=false; updateTourUI(); return; }   // single step: stop here
-      await hold(TOUR[k].text.length > 95 ? 3400 : 2600, token);
+      if(audible()){
+        await spoken;                                   // let the sentence finish
+        if(token!==tourToken) return;
+        await hold(Math.round(620 / speed()), token);
+      } else {
+        await hold(Math.round((TOUR[k].text.length > 95 ? 3400 : 2600) / speed()), token);
+      }
     }
     if(token!==tourToken) return;
     hideNarration(); spotOff();
@@ -570,7 +699,7 @@ async function playFrom(i, auto){
   }catch(e){ /* superseded by a newer jump */ }
 }
 const runTour = () => playFrom(0, true);
-function stopTour(){ ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
+function stopTour(){ stopSpeech(); ++tourToken; tourAuto=false; tourPaused=false; updateTourUI(); }
 
 $('tourPrev').addEventListener('click', ()=>{ if(currentStep>0) playFrom(currentStep-1, false); });
 $('tourNext').addEventListener('click', ()=>{ if(currentStep<TOUR.length-1) playFrom(currentStep+1, false); });
@@ -579,8 +708,50 @@ $('tourDots').addEventListener('click', e=>{
   playFrom(parseInt(d.dataset.step,10), false);
 });
 $('tourToggle').addEventListener('click',()=>{
-  if(tourAuto){ tourPaused = !tourPaused; updateTourUI(); }
+  if(tourAuto){
+    tourPaused = !tourPaused;
+    if(CAN_SPEAK){ try{ tourPaused ? speechSynthesis.pause() : speechSynthesis.resume(); }catch(e){} }
+    updateTourUI();
+  }
   else { playFrom(Math.min(currentStep+1, TOUR.length-1), true); }   // resume auto from here
+});
+/* Speed applies from the next sentence, so the current one is not cut off. */
+$('tourSpeed').addEventListener('click',()=>{
+  speedIx = (speedIx + 1) % SPEEDS.length;
+  updateTourUI();
+});
+/* Turning the voice on re-reads the step you are looking at, so the button
+   proves it worked instead of staying silent until the next one. */
+/* iOS and Safari only allow speech that begins inside the tap itself, and
+   they stay unlocked for the rest of the session once one utterance has been
+   started that way. So this handler speaks straight away, synchronously,
+   rather than waiting for the next step to come round. */
+$('tourVoice').addEventListener('click',()=>{
+  voiceOn = !voiceOn;
+  if(voiceOn && muted) muted = false;
+  updateTourUI();
+  if(!voiceOn){ stopSpeech(); return; }
+  const line = TOUR[currentStep] ? TOUR[currentStep].text : 'Voice on.';
+  speak(line);
+});
+/* Mute silences it now; the tour then paces itself the way it does in
+   silence, and unmuting picks the voice up at the next step. */
+$('tourMute').addEventListener('click',()=>{
+  muted = !muted;
+  updateTourUI();
+  if(muted){ stopSpeech(); return; }
+  if(TOUR[currentStep]) speak(TOUR[currentStep].text);
+});
+/* Dragging to zero is a mute. The new level is heard on release rather than
+   on every pixel of the drag. */
+$('tourVol').addEventListener('input', e=>{
+  volume = Math.max(0, Math.min(1, Number(e.target.value) / 100));
+  if(volume > 0 && muted) muted = false;
+  if(volume === 0) stopSpeech();
+  updateTourUI();
+});
+$('tourVol').addEventListener('change', ()=>{
+  if(audible() && TOUR[currentStep]) speak(TOUR[currentStep].text);
 });
 $('tourReplay').addEventListener('click',()=>{ resetMockup(); playFrom(0, true); });
 const toFeedback = ()=>{ stopTour(); hideNarration(); spotOff(); openApproval(); };
@@ -590,7 +761,7 @@ window.addEventListener('resize', applySpot);
 
 /* ─── Review panel ─── */
 let decision=null;
-function openApproval(){ $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
+function openApproval(){ stopSpeech(); $('apOverlay').classList.add('on'); setTimeout(()=>$('apName').focus(),120); }
 function closeApproval(){ $('apOverlay').classList.remove('on'); }
 
 $('apChoices').addEventListener('click', e=>{
@@ -695,7 +866,7 @@ async function showHero(){
   const tick=setInterval(()=>{ n--; $('heroCount').textContent=Math.max(0,n); }, 1000);
   await new Promise(res=>{
     let done=false;
-    const go=()=>{ if(done) return; done=true; clearInterval(tick); res(); };
+    const go=()=>{ if(done) return; done=true; clearInterval(tick); updateTourUI(); res(); };
     $('heroStart').addEventListener('click', go, { once:true });
     h.addEventListener('click', e=>{ if(e.target===h) go(); });
     setTimeout(go, 7400);
