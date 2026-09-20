@@ -6,7 +6,10 @@ narrated, self-playing walkthrough of that feature — as if it already existed.
 The output is one HTML file. No build step, no dependencies, no server, no network
 calls. Send it to a customer and they double-click it.
 
-![The example walkthrough, mid-play](example/screenshot.png)
+[![The how-it-works walkthrough playing](example/how-it-works-preview.gif)](https://jaymenna.github.io/feature-walkthrough/how-it-works.html)
+
+**[Watch it play, with sound →](https://jaymenna.github.io/feature-walkthrough/how-it-works.html)**
+The skill explaining itself, made with itself. About ninety seconds.
 
 ## The problem it solves
 
@@ -155,6 +158,8 @@ data origin separate. It does not generate audio or interactive product screens.
 **[How it works](https://jaymenna.github.io/feature-walkthrough/how-it-works.html)**
 — this skill, explained using this skill. A walkthrough of what actually happens
 when you invoke it, start to finish. About ninety seconds.
+
+![The example walkthrough, mid-play](example/screenshot.png)
 
 **[A finished walkthrough](https://jaymenna.github.io/feature-walkthrough/example/expiring-quotes-walkthrough.html)**
 — what the skill produces for a real feature: an alert system for an insurance
