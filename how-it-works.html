@@ -217,6 +217,36 @@ html, body {
          transition: all .3s cubic-bezier(.2,1.4,.4,1); }
 .route.on { opacity: 1; transform: none; }
 
+/* ─── The made-with badge on the intro card ─── */
+.made-with { display: inline-block; font-size: 11.5px; font-weight: 600; color: var(--primary);
+             background: var(--primary-10); border: 1px solid rgba(47,95,160,.22);
+             border-radius: 999px; padding: 6px 13px; margin-bottom: 18px; }
+.made-with b { font-family: var(--mono); font-weight: 700; }
+
+/* ─── The closing offer ─── */
+#outro { position: fixed; inset: 0; z-index: 1600; display: none; align-items: center;
+         justify-content: center; padding: 24px; background: rgba(14,18,22,.74);
+         opacity: 0; transition: opacity .5s ease; }
+#outro.show { display: flex; }
+#outro.in { opacity: 1; }
+.outro-card { background: #fff; border-radius: 16px; width: 560px; max-width: 100%;
+              padding: 38px 42px 32px; box-shadow: 0 40px 110px rgba(0,0,0,.42);
+              text-align: center; transform: translateY(14px) scale(.985);
+              transition: transform .5s cubic-bezier(.2,.85,.3,1); }
+#outro.in .outro-card { transform: none; }
+.outro-card .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .9px;
+                       text-transform: uppercase; color: var(--dimmed); }
+.outro-card h2 { font-size: 25px; line-height: 1.24; margin: 12px 0 10px; letter-spacing: -.4px; }
+.outro-card p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 26px; }
+.outro-acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.outro-acts a, .outro-acts button { font-family: inherit; font-size: 13.5px; font-weight: 700;
+              border-radius: 9px; padding: 12px 20px; cursor: pointer; border: none;
+              text-decoration: none; display: inline-block; }
+.outro-acts .go { background: var(--primary); color: #fff; }
+.outro-acts .go:hover { background: var(--primary-dark); }
+.outro-acts .alt { background: var(--hover); color: var(--ink-2); border: 1px solid var(--line-2); }
+.outro-acts .alt:hover { background: #eef1f4; color: var(--ink); }
+
 /* ─── Scene 8: the close ─── */
 .close-line { font-size: 15px; color: var(--ink-2); margin-top: 8px; text-align: center; }
 .cmd { display: inline-block; font-family: var(--mono); font-size: 15px; font-weight: 700;
@@ -551,9 +581,10 @@ html, body {
       <img id="heroLogo" alt="" style="display:none" />
       <span class="eyebrow" id="heroEyebrow">feature-walkthrough &#183; how it works</span>
     </div>
+    <div class="made-with">This walkthrough was made with the <b>feature-walkthrough</b> skill.</div>
     <h1 id="heroTitle">This is a walkthrough of the thing that makes walkthroughs.</h1>
-    <p class="lede">Made with the skill it is describing, so what you are watching is also
-       the evidence. About ninety seconds, and it talks.</p>
+    <p class="lede">So what you are watching is also the evidence that it works.
+       About ninety seconds, and it talks.</p>
     <div class="hero-list" id="heroList">
       <div class="hero-item"><div class="hero-num">1</div>
         <div><b>Point it at a codebase</b><span>And name the features worth showing.</span></div></div>
@@ -565,6 +596,21 @@ html, body {
     <div class="hero-foot">
       <button id="heroStart">Show me</button>
       <span class="count">Starting in <b id="heroCount">7</b>&#8230;</span>
+    </div>
+  </div>
+</div>
+
+<div id="outro">
+  <div class="outro-card">
+    <div class="eyebrow">That was the skill, explaining itself</div>
+    <h2>Want to see one made for a real product?</h2>
+    <p>The same engine, pointed at an insurance underwriting platform: quotes past
+       their effective date, flagged on the underwriter&rsquo;s own list.</p>
+    <div class="outro-acts">
+      <a class="go" id="outroExample"
+         href="https://jaymenna.github.io/feature-walkthrough/example/expiring-quotes-walkthrough.html"
+         target="_blank" rel="noopener">Show me a real one</a>
+      <button class="alt" id="outroReplay">Replay this one</button>
     </div>
   </div>
 </div>
@@ -750,6 +796,19 @@ function resetMockup(){
   lightAll(['rt1','rt2','rt3','rt4'], 'on', false);
 }
 
+/* ─── The closing offer ─────────────────────────────────────────────────── */
+async function showOutro(){
+  const o = $('outro');
+  o.classList.add('show');
+  await sleep(30);
+  o.classList.add('in');
+}
+function hideOutro(){
+  const o = $('outro');
+  o.classList.remove('in');
+  setTimeout(()=>o.classList.remove('show'), 500);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    THE TOUR
 
@@ -836,6 +895,9 @@ const TOUR = [
     run: async()=>{ await toScene('scEnd'); spotOff();
                     await sleep(260); await spotReveal(['.cmd'], 16); } },
 ];
+
+$('outroReplay').addEventListener('click', ()=>{ hideOutro(); resetMockup(); playFrom(0, true); });
+$('outro').addEventListener('click', e=>{ if(e.target === $('outro')) hideOutro(); });
 
 /* ══════════════════════════════════════════════════════════════════════════
    ENGINE — unchanged from template/walkthrough-template.html
@@ -1037,8 +1099,9 @@ async function playFrom(i, auto){
     if(token!==tourToken) return;
     hideNarration(); spotOff(); stopSpeech();
     tourAuto=false; updateTourUI();
-    /* This one does not ask for sign-off at the end. The Give feedback
-       button is still there for anyone who wants to say something. */
+    /* This one offers a real example instead of asking for sign-off. The
+       Give feedback button is still there for anyone who wants it. */
+    showOutro();
   }catch(e){ /* superseded */ }
 }
 const runTour = () => playFrom(0, true);
