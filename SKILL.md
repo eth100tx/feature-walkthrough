@@ -54,6 +54,17 @@ and the pacing cannot drift apart.
 Never write a step whose `run` depends on the step before it having run: put the
 scene, the filters and the open panels that step needs inside that step.
 
+## Every image lives inside the file
+
+The file fetches nothing, so it may not reference one either. A logo, an avatar,
+an icon or a screenshot goes in as **inline `<svg>`** or as a **`data:` URI**,
+never as a path or a URL. An `<img src="logo.png">` works on your machine and
+shows a broken-image icon on theirs, on the first screen, on a page whose whole
+claim is that it needs nothing.
+
+If you cannot embed an image, draw it. A wordmark set in the product's own type
+beats a broken picture of one.
+
 ## What you need from the user
 
 Exactly two things. Ask for both, then stop and wait.

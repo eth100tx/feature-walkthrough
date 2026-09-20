@@ -295,6 +295,9 @@ html, body {
 <div id="hero">
   <div class="hero-card">
     <div class="hero-brand">
+      <!-- A logo goes in as inline <svg> or a data: URI, never a path or a URL.
+           This file fetches nothing, so a src that is not embedded shows a
+           broken-image icon on the viewer's first screen. -->
       <img id="heroLogo" alt="" style="display:none" />
       <span class="eyebrow" id="heroEyebrow">Product · Feature</span>
     </div>
